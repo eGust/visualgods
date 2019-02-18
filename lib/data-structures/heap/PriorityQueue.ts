@@ -13,14 +13,15 @@ export default class PriorityQueue extends Heap {
     if (!list.length) return null;
 
     const result = list[0];
+    const last = list.pop();
     if (list.length) {
-      list[0] = list.pop();
+      list[0] = last;
       siftDown(list, 0, list.length, this.comparer);
     }
     return result;
   }
 
-  get peek() {
+  peek(): any {
     const { data: list } = this;
     return list.length ? list[0] : null;
   }
