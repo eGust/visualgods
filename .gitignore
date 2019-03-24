@@ -5,3 +5,4 @@ tmp
 /extension
 _*.*
 *.log*
+.vscode
