@@ -1,22 +1,23 @@
-import Sort, { swap } from '../Sort';
+import Sort, { swap, Comparer } from '../Sort';
 
-const bubbleSort = (array: any[]) => {
-  let n = array.length;
+const bubbleSort = <T>(items: T[], compare: Comparer<T>) => {
+  let n = items.length;
   let swapped: boolean;
   do {
     swapped = false;
     for (let i = 1; i < n; i += 1) {
-      if (array[i - 1] > array[i]) {
-        swap(array, i - 1, i);
+      if (compare(items[i - 1], items[i]) > 0) {
+        swap(items, i - 1, i);
         swapped = true;
       }
     }
   } while(swapped);
 };
 
-class BubbleSort extends Sort {
-  execute() {
-    bubbleSort(this.data);
+class BubbleSort<T> extends Sort<T> {
+  sort() {
+    const { items, compare } = this;
+    bubbleSort(items, compare);
   }
 }
 

@@ -1,14 +1,10 @@
-import { swap } from '../../utils';
-
-const COMPARER = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-
-type Comparer = (a: any, b: any) => number;
+import { swap, Comparer, defaultCompare } from '../../utils';
 
 export const parentOf = (n: number) => (n - 1) / 2 | 0;
 export const leftChildOf = (n: number) => n * 2 + 1;
 export const rightChildOf = (n: number) => (n + 1) * 2;
 
-export const siftDown = (list: any[], start: number, end: number, compare: Comparer = COMPARER) => {
+export const siftDown = <T>(list: T[], start: number, end: number, compare: Comparer<T> = defaultCompare) => {
   let parent = start;
   let child = leftChildOf(parent);
   const last = end - 1;
@@ -25,14 +21,14 @@ export const siftDown = (list: any[], start: number, end: number, compare: Compa
   }
 };
 
-export const heapifyDown = (list: any[], comparer: Comparer = COMPARER) => {
+export const heapifyDown = <T>(list: T[], comparer: Comparer<T> = defaultCompare) => {
   const size = list.length;
   for (let i = parentOf(size - 1); i >= 0; i -= 1) {
     siftDown(list, i, size, comparer);
   }
 };
 
-export const siftUp = (list: any[], start: number, end: number, compare: Comparer = COMPARER) => {
+export const siftUp = <T>(list: T[], start: number, end: number, compare: Comparer<T> = defaultCompare) => {
   for (let child = end - 1; child > start;) {
     const parent = parentOf(child);
     if (compare(list[parent], list[child]) >= 0) return;
@@ -42,7 +38,7 @@ export const siftUp = (list: any[], start: number, end: number, compare: Compare
   }
 };
 
-export const heapifyUp = (list: any[], comparer: Comparer = COMPARER) => {
+export const heapifyUp = <T>(list: T[], comparer: Comparer<T> = defaultCompare) => {
   const size = list.length;
   for (let i = 2; i <= size; i += 1) {
     siftUp(list, 0, i, comparer);

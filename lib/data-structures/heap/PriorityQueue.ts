@@ -1,7 +1,7 @@
 import { Heap } from './Heap';
 import { siftDown, siftUp } from './utils';
 
-export default class PriorityQueue extends Heap {
+export default class PriorityQueue<T> extends Heap<T> {
   push(item: any) {
     const { data: list } = this;
     list.push(item);

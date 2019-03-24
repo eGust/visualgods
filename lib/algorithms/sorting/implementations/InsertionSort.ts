@@ -1,17 +1,18 @@
-import Sort, { swap } from '../Sort';
+import Sort, { swap, Comparer } from '../Sort';
 
-const insertionSort = (array: any[]) => {
-  const size = array.length;
+const insertionSort = <T>(items: T[], compare: Comparer<T>) => {
+  const size = items.length;
   for (let i = 1; i < size; i += 1) {
-    for (let j = i; j > 0 && array[j - 1] > array[j]; j -= 1) {
-      swap(array, j, j - 1);
+    for (let j = i; j > 0 && compare(items[j - 1], items[j]) > 0; j -= 1) {
+      swap(items, j, j - 1);
     }
   }
 };
 
-class InsertionSort extends Sort {
-  execute() {
-    insertionSort(this.data);
+class InsertionSort<T> extends Sort<T> {
+  sort() {
+    const { items, compare } = this;
+    insertionSort(items, compare);
   }
 }
 

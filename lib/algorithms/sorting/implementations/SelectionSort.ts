@@ -1,24 +1,25 @@
-import Sort, { swap } from '../Sort';
+import Sort, { swap, Comparer } from '../Sort';
 
-const selectionSort = (array: any[]) => {
-  const size = array.length;
+const selectionSort = <T>(items: T[], compare: Comparer<T>) => {
+  const size = items.length;
   for (let j = 0; j < size - 1; j += 1) {
-    let idxMin = j;
-    for (let i = j + 1; i < size; i += 1) {
-      if (array[i] < array[idxMin]) {
-        idxMin = i;
+    let iMin = j;
+    for (let i = j; i < size; i += 1) {
+      if (compare(items[i], items[iMin]) < 0) {
+        iMin = i;
       }
     }
 
-    if (idxMin !== j) {
-      swap(array, j, idxMin);
+    if (iMin !== j) {
+      swap(items, j, iMin);
     }
   }
 };
 
-class SelectionSort extends Sort {
-  execute() {
-    selectionSort(this.data);
+class SelectionSort<T> extends Sort<T> {
+  sort() {
+    const { items, compare } = this;
+    selectionSort(items, compare);
   }
 }
 

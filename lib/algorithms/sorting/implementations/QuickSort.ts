@@ -1,35 +1,35 @@
-import Sort, { swap } from '../Sort';
+import Sort, { swap, Comparer } from '../Sort';
 
-const partition = (array: any[], lo: number, hi: number): number => {
+const partition = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>): number => {
   const mid = Math.floor((hi - lo) / 2) + lo;
-  const pivot = array[mid];
+  const pivot = items[mid];
   for (let i = lo - 1, j = hi + 1;;) {
     do {
       i += 1;
-    } while (array[i] < pivot);
+    } while (compare(items[i], pivot) < 0);
 
     do {
       j -= 1;
-    } while (array[j] > pivot);
+    } while (compare(items[j], pivot) > 0);
 
     if (i >= j) return j;
 
-    swap(array, i, j);
+    swap(items, i, j);
   }
 };
 
-const quicksort = (array: any[], lo: number, hi: number) => {
+const quicksort = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>) => {
   if (lo < hi) {
-    const p = partition(array, lo, hi);
-    quicksort(array, lo, p);
-    quicksort(array, p + 1, hi);
+    const p = partition(items, lo, hi, compare);
+    quicksort(items, lo, p, compare);
+    quicksort(items, p + 1, hi, compare);
   }
 }
 
-class QuickSort extends Sort {
-  execute() {
-    const { data: array } = this;
-    quicksort(array, 0, array.length - 1);
+class QuickSort<T> extends Sort<T> {
+  sort() {
+    const { items, compare } = this;
+    quicksort(items, 0, items.length - 1, compare);
   }
 }
 
