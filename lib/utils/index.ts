@@ -1,4 +1,21 @@
-export * from './runner';
+export class Runner {
+  data: any;
+  verify: () => boolean = null;
+
+  dump() {
+    return JSON.stringify(this.data);
+  }
+
+  load(json: string) {
+    this.data = JSON.parse(json);
+  }
+
+  randomize(args = {}) {}
+
+  execute() {}
+}
+
+export type Runnable = Runner | { new(): Runner };
 
 export const swap = (list: any[], i: number, j: number) => {
   const t = list[i];
