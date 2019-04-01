@@ -1,8 +1,8 @@
-import { Runner, defaultCompare, Comparer } from '../../utils';
+import { Runner, defaultCompare, Comparer } from '../../utils/index';
 
-export { swap, Comparer } from '../../utils';
+export { swap, Comparer } from '../../utils/index';
 
-export default class Sort<T> extends Runner {
+export default abstract class Sort<T> extends Runner {
   compare: Comparer<T>;
 
   constructor(comparer: Comparer<T> = defaultCompare) {
@@ -14,24 +14,9 @@ export default class Sort<T> extends Runner {
     return this.data;
   }
 
-  execute() {
-    this.sort();
+  set items(value: T[]) {
+    this.data = value;
   }
 
-  sort() {}
-
-  randomize({ count = 40, low = 100, high = 200 } = {}) {
-    const arr = new Array<number>(count);
-    const size = (high - low) + 1;
-    for (let i = 0; i < count; i += 1) {
-      arr[i] = low + (Math.random() * size | 0);
-    }
-    this.data = arr;
-  }
-
-  verify = () => {
-    const { items } = this;
-    const array = [...items];
-    return JSON.stringify(array.sort(this.compare)) === JSON.stringify(items);
-  }
+  abstract sort(): void;
 }

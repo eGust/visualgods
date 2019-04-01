@@ -1,4 +1,4 @@
-export { default as Sort } from './Sort';
+export { default } from './Sort';
 export { default as BubbleSort } from './implementations/BubbleSort';
 export { default as HeapSort } from './implementations/HeapSort';
 export { default as InsertionSort } from './implementations/InsertionSort';

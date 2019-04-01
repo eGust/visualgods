@@ -10,19 +10,17 @@ export class Runner {
   load(json: string) {
     this.data = JSON.parse(json);
   }
-
-  randomize(args = {}) {}
-
-  execute() {}
 }
 
 export type Runnable = Runner | { new(): Runner };
 
+/* eslint-disable no-param-reassign */
 export const swap = (list: any[], i: number, j: number) => {
   const t = list[i];
   list[i] = list[j];
   list[j] = t;
 };
+/* eslint-enable no-param-reassign */
 
 export type Comparer<T> = (a: T, b: T) => number;
 
