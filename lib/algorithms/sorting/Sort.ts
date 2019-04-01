@@ -1,4 +1,5 @@
 import { Runner, defaultCompare, Comparer } from '../../utils';
+
 export { swap, Comparer } from '../../utils';
 
 export default class Sort<T> extends Runner {

@@ -1,6 +1,6 @@
 import Sort, { swap, Comparer } from '../Sort';
 
-const selectionSort = <T>(items: T[], compare: Comparer<T>) => {
+function selectionSort<T>(items: T[], compare: Comparer<T>) {
   const size = items.length;
   for (let j = 0; j < size - 1; j += 1) {
     let iMin = j;
@@ -14,7 +14,7 @@ const selectionSort = <T>(items: T[], compare: Comparer<T>) => {
       swap(items, j, iMin);
     }
   }
-};
+}
 
 class SelectionSort<T> extends Sort<T> {
   sort() {

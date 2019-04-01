@@ -1,7 +1,7 @@
 import Sort, { swap, Comparer } from '../Sort';
 
-const bubbleSort = <T>(items: T[], compare: Comparer<T>) => {
-  let n = items.length;
+function bubbleSort<T>(items: T[], compare: Comparer<T>) {
+  const n = items.length;
   let swapped: boolean;
   do {
     swapped = false;
@@ -11,8 +11,8 @@ const bubbleSort = <T>(items: T[], compare: Comparer<T>) => {
         swapped = true;
       }
     }
-  } while(swapped);
-};
+  } while (swapped);
+}
 
 class BubbleSort<T> extends Sort<T> {
   sort() {

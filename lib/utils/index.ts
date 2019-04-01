@@ -1,5 +1,6 @@
 export class Runner {
   data: any;
+
   verify: () => boolean = null;
 
   dump() {
@@ -21,7 +22,7 @@ export const swap = (list: any[], i: number, j: number) => {
   const t = list[i];
   list[i] = list[j];
   list[j] = t;
-}
+};
 
 export type Comparer<T> = (a: T, b: T) => number;
 

@@ -1,9 +1,9 @@
 import Sort, { swap, Comparer } from '../Sort';
 
-const partition = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>): number => {
+function partition<T>(items: T[], lo: number, hi: number, compare: Comparer<T>): number {
   const mid = Math.floor((hi - lo) / 2) + lo;
   const pivot = items[mid];
-  for (let i = lo - 1, j = hi + 1;;) {
+  for (let i = lo - 1, j = hi + 1; ;) {
     do {
       i += 1;
     } while (compare(items[i], pivot) < 0);
@@ -16,9 +16,9 @@ const partition = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>):
 
     swap(items, i, j);
   }
-};
+}
 
-const quicksort = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>) => {
+function quicksort<T>(items: T[], lo: number, hi: number, compare: Comparer<T>) {
   if (lo < hi) {
     const p = partition(items, lo, hi, compare);
     quicksort(items, lo, p, compare);

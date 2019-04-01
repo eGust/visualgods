@@ -5,11 +5,15 @@ export enum MinMax { Min, Max }
 
 export class Heap<T> extends Runner {
   minMax = MinMax.Min;
+
   comparer: Comparer<T>;
 
   constructor({ minMax = MinMax.Min, comparer }: { minMax?: MinMax, comparer?: Comparer<T> } = {}) {
     super();
-    this.comparer = comparer || (minMax == MinMax.Max ? defaultCompare : (a, b) => -defaultCompare(a, b));
+    this.comparer = comparer || (minMax === MinMax.Max
+      ? defaultCompare
+      : (a, b) => -defaultCompare(a, b)
+    );
   }
 
   randomize({ count = 40, low = 100, high = 200 } = {}) {

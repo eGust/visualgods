@@ -9,10 +9,10 @@ import {
 } from '.';
 
 export default () => [
-    BubbleSort,
-    HeapSort,
-    InsertionSort,
-    MergeSort,
-    QuickSort,
-    SelectionSort,
-  ].map(testSort).reduce((all, result) => ({ ...all, ...result }), {});
+  BubbleSort,
+  HeapSort,
+  InsertionSort,
+  MergeSort,
+  QuickSort,
+  SelectionSort,
+].map(testSort).reduce((all, result) => ({ ...all, ...result }), {});
