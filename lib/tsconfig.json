@@ -1,5 +1,10 @@
 {
+  "typeRoots": [
+    "node_modules/@types"
+  ],
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "*": ["types/*"] },
     "esModuleInterop": true,
     "declaration": true,
     "target": "es2018"

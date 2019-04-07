@@ -1,3 +1,6 @@
+import { env } from 'process';
+import times from 'lodash/fp/times';
+
 import * as sorters from '../../algorithms/sorting/index';
 import { defaultCompare } from '../../utils/index';
 
@@ -15,13 +18,16 @@ function generateRandomNumbers({ count = 50, low = 100, high = 999 }) {
   return numbers;
 }
 
-[1, 2, 3].forEach((id) => {
-  describe(`Sort - round ${id}`, () => {
-    const rawNumbers = generateRandomNumbers({
-      count: 1000,
-      low: 10000,
-      high: 99999,
-    });
+const TIMES = 2;
+const RANGE = {
+  count: (+env.TEST_SAMPLE_SIZE) || 100,
+  low: (+env.TEST_SAMPLE_RANGE_LOW) || 100,
+  high: (+env.TEST_SAMPLE_RANGE_HIGH) || 999,
+};
+
+function generateTest(index: number) {
+  describe(`Sort - round ${index + 1}`, () => {
+    const rawNumbers = generateRandomNumbers(RANGE);
     const sorted = [...rawNumbers].sort(defaultCompare);
     Object.entries(Sorters).forEach(([sortName, Sorter]) => {
       test(sortName, () => {
@@ -32,4 +38,6 @@ function generateRandomNumbers({ count = 50, low = 100, high = 999 }) {
       });
     });
   });
-});
+}
+
+times(generateTest)((+env.TEST_TIMES) || TIMES);
