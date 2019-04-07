@@ -4,21 +4,12 @@
   "main": "index.ts",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./",
     "test": "jest ./",
     "test:sort:50k": "cross-env TEST_TIMES=1 TEST_SAMPLE_SIZE=54321 TEST_SAMPLE_RANGE_LOW=1000000 TEST_SAMPLE_RANGE_LOW=9999999 jest ./tests/algorithms/"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.11",
     "@types/lodash": "^4.14.123",
-    "@typescript-eslint/eslint-plugin": "^1.5.0",
     "cross-env": "^5.2.0",
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-typescript": "^1.1.0",
-    "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-jest": "^22.4.1",
-    "eslint-plugin-jsx-a11y": "^6.2.1",
-    "eslint-plugin-react": "^7.12.4",
     "jest": "^24.5.0",
     "lodash": "^4.17.11",
     "ts-jest": "^24.0.1",
