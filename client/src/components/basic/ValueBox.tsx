@@ -7,22 +7,21 @@ import {
   ValueType,
 } from './common_types';
 
-interface ValueBoxProps<T extends ValueType> extends ValueRecord<T> {
-}
+interface ValueBoxProps<T extends ValueType> extends ValueRecord<T> {}
 
 const Box = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 24px;
-  width: 75px;
-  height: 46px;
+  font-size: 20px;
+  width: 50px;
+  height: 36px;
 
   border-width: 1px;
   border-style: solid;
   border-radius: 8px;
-  margin: 3px 5px;
+  margin: 3px;
 `;
 
 function ValueBox<T extends ValueType>(props: ValueBoxProps<T>) {
