@@ -27,6 +27,7 @@ function mergeSort<T>(items: T[], compare: Comparer<T>, start = 0, end = items.l
   const size = end - start;
   if (size <= 1) return items.slice(start, end);
 
+  // eslint-disable-next-line no-bitwise
   const mid = start + (size / 2 | 0);
   return merge(
     mergeSort(items, compare, start, mid),
@@ -36,7 +37,7 @@ function mergeSort<T>(items: T[], compare: Comparer<T>, start = 0, end = items.l
 }
 
 class MergeSort<T> extends Sort<T> {
-  sort() {
+  public sort() {
     const { items, compare } = this;
     this.data = mergeSort(items, compare);
   }

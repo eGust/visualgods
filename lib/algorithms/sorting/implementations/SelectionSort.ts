@@ -17,7 +17,7 @@ function selectionSort<T>(items: T[], compare: Comparer<T>) {
 }
 
 class SelectionSort<T> extends Sort<T> {
-  sort() {
+  public sort() {
     const { items, compare } = this;
     selectionSort(items, compare);
   }

@@ -10,7 +10,7 @@ function heapSort<T>(items: T[], comparer: Comparer<T>) {
 }
 
 class HeapSort<T> extends Sort<T> {
-  sort() {
+  public sort() {
     const { items, compare } = this;
     heapSort(items, compare);
   }

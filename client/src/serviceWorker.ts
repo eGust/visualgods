@@ -21,10 +21,10 @@ const isLocalhost = Boolean(
     ),
 );
 
-type Config = {
+interface Config {
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
-};
+}
 
 /* globals navigator */
 function registerValidSW(swUrl: string, config?: Config) {

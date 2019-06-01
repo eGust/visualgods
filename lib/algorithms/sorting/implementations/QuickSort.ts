@@ -27,7 +27,7 @@ function quicksort<T>(items: T[], lo: number, hi: number, compare: Comparer<T>) 
 }
 
 class QuickSort<T> extends Sort<T> {
-  sort() {
+  public sort() {
     const { items, compare } = this;
     quicksort(items, 0, items.length - 1, compare);
   }

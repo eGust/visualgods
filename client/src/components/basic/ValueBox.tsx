@@ -7,8 +7,6 @@ import {
   ValueType,
 } from './common_types';
 
-interface ValueBoxProps<T extends ValueType> extends ValueRecord<T> {}
-
 const Box = styled.div`
   display: flex;
   align-items: center;
@@ -24,7 +22,7 @@ const Box = styled.div`
   margin: 3px;
 `;
 
-function ValueBox<T extends ValueType>(props: ValueBoxProps<T>) {
+function ValueBox<T extends ValueType>(props: ValueRecord<T>) {
   // const style = useSpring({ opacity: 1, from: { opacity: 0 } });
   const { value, status } = props;
   return (

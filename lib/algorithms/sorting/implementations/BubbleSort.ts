@@ -15,7 +15,7 @@ function bubbleSort<T>(items: T[], compare: Comparer<T>) {
 }
 
 class BubbleSort<T> extends Sort<T> {
-  sort() {
+  public sort() {
     const { items, compare } = this;
     bubbleSort(items, compare);
   }

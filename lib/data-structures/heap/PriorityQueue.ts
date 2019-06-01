@@ -2,13 +2,13 @@ import { Heap } from './Heap';
 import { siftDown, siftUp } from './utils';
 
 export default class PriorityQueue<T> extends Heap<T> {
-  push(item: any) {
+  public push(item: T) {
     const { data: list } = this;
     list.push(item);
     siftUp(list, 0, list.length, this.comparer);
   }
 
-  pop(): any {
+  public pop(): T {
     const { data: list } = this;
     if (!list.length) return null;
 
@@ -21,7 +21,7 @@ export default class PriorityQueue<T> extends Heap<T> {
     return result;
   }
 
-  peek(): any {
+  public peek(): T {
     const { data: list } = this;
     return list.length ? list[0] : null;
   }

@@ -4,11 +4,15 @@ import { parentOf, heapifyUp } from './utils';
 export enum MinMax { Min, Max }
 
 export class Heap<T> extends Runner {
-  minMax = MinMax.Min;
+  protected minMax = MinMax.Min;
 
-  comparer: Comparer<T>;
+  protected comparer: Comparer<T>;
 
-  constructor({ minMax = MinMax.Min, comparer }: { minMax?: MinMax, comparer?: Comparer<T> } = {}) {
+  protected data: T[];
+
+  public constructor({ minMax = MinMax.Min, comparer }: {
+    minMax?: MinMax; comparer?: Comparer<T>;
+  } = {}) {
     super();
     this.comparer = comparer || (minMax === MinMax.Max
       ? defaultCompare
@@ -16,36 +20,37 @@ export class Heap<T> extends Runner {
     );
   }
 
-  randomize({ count = 40, low = 100, high = 200 } = {}) {
+  protected randomize({ count = 40, low = 100, high = 200 } = {}) {
     const arr = new Array<number>(count);
     const size = (high - low) + 1;
     for (let i = 0; i < count; i += 1) {
+      // eslint-disable-next-line no-bitwise
       arr[i] = low + (Math.random() * size | 0);
     }
     this.data = arr;
   }
 
-  get items(): T[] {
+  public get items(): T[] {
     return this.data;
   }
 
-  get length() {
+  public get length() {
     return this.items.length;
   }
 
-  get isEmpty() {
+  public get isEmpty() {
     return !this.length;
   }
 
-  execute() {
+  protected execute() {
     this.heapify();
   }
 
-  heapify() {
+  protected heapify() {
     heapifyUp(this.items, this.comparer);
   }
 
-  verify = () => {
+  protected verify = () => {
     const { items, comparer: compare } = this;
     for (let child = items.length - 1; child > 0; child -= 1) {
       const parent = parentOf(child);
@@ -54,7 +59,7 @@ export class Heap<T> extends Runner {
     return true;
   }
 
-  test() {
+  protected test() {
     this.randomize();
     this.execute();
     return this.verify();

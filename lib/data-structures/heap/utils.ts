@@ -1,5 +1,6 @@
-import { swap, Comparer, defaultCompare } from '../../utils';
+import { swap, Comparer, defaultCompare } from '../../utils/index';
 
+// eslint-disable-next-line no-bitwise
 export const parentOf = (n: number) => (n - 1) / 2 | 0;
 export const leftChildOf = (n: number) => n * 2 + 1;
 export const rightChildOf = (n: number) => (n + 1) * 2;

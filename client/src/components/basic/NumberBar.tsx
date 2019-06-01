@@ -4,8 +4,6 @@ import styled from '@emotion/styled';
 
 import { ValueRecord } from './common_types';
 
-interface NumberBar extends ValueRecord<number> {}
-
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -28,7 +26,7 @@ const Bar = styled.div`
   margin: 3px 5px;
 `;
 
-function NumberBar(props: NumberBar) {
+function NumberBar(props: ValueRecord<number>) {
   // const style = useSpring({ opacity: 1, from: { opacity: 0 } });
   const { value, status } = props;
   return (

@@ -1,13 +1,13 @@
 export class Runner {
-  data: any;
+  protected data: any;
 
-  verify: () => boolean = null;
+  protected verify: () => boolean = null;
 
-  dump() {
+  protected dump() {
     return JSON.stringify(this.data);
   }
 
-  load(json: string) {
+  protected load(json: string) {
     this.data = JSON.parse(json);
   }
 }
@@ -15,11 +15,11 @@ export class Runner {
 export type Runnable = Runner | { new(): Runner };
 
 /* eslint-disable no-param-reassign */
-export const swap = (list: any[], i: number, j: number) => {
+export function swap<T>(list: T[], i: number, j: number) {
   const t = list[i];
   list[i] = list[j];
   list[j] = t;
-};
+}
 /* eslint-enable no-param-reassign */
 
 export type Comparer<T> = (a: T, b: T) => number;

@@ -13,8 +13,8 @@ import NumberBar from '../../src/components/basic/NumberBar';
 import { ItemStatus, ItemHighlight } from '../../src/components/basic/common_types';
 
 const generateRandomItems = flow(
-  (count: number) => [98 / count | 0, count],
-  ([step, count]) => [step, count, (100 + step - step * count) / 2 | 0],
+  (count: number) => [Math.floor(98 / count), count],
+  ([step, count]) => [step, count, Math.floor((100 + step - step * count) / 2)],
   ([step, count, base]) => times(index => base + index * step, count),
   items => shuffle(items),
 );
