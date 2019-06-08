@@ -16,9 +16,13 @@ const Container = styled.div`
   height: 540px;
 `;
 
-const Bar = styled.div`
+interface BarParams {
+  value: number;
+}
+
+const Bar = styled.div<BarParams>`
   width: 38.2%;
-  height: ${({ value }: { value: number }) => value * 5}px;
+  height: ${({ value }) => value * 5}px;
 
   border-width: 1px;
   border-style: solid;

@@ -18,10 +18,14 @@
     "typescript": "3.5.1"
   },
   "scripts": {
+    "s": "cross-env BROWSER=none react-scripts start",
+    "sb": "start-storybook -p 6006 --ci",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "browserslist": [
     "last 1 chrome version",
