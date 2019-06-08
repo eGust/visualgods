@@ -1,7 +1,7 @@
 export class Runner {
   protected data: any;
 
-  protected verify: () => boolean = null;
+  protected verify: () => boolean = () => true;
 
   protected dump() {
     return JSON.stringify(this.data);

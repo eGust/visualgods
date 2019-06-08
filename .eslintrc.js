@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: ['airbnb', 'plugin:@typescript-eslint/recommended'],
+  extends: ['airbnb', 'plugin:@typescript-eslint/recommended', 'react-hooks'],
   rules: {
     'no-bitwise': 1,
     indent: 'off',
@@ -21,6 +21,8 @@ module.exports = {
     'no-unused-vars': ['error', {
       ignoreRestSiblings: true,
     }],
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
   },
   settings: {
     'import/extensions': ['.js', '.jsx', '.ts', '.tsx'],

@@ -16,13 +16,13 @@ const Container = styled.div`
   height: 540px;
 `;
 
-interface BarParams {
-  value: number;
+interface BarProps {
+  size: number;
 }
 
-const Bar = styled.div<BarParams>`
+const Bar = styled.div<BarProps>`
   width: 38.2%;
-  height: ${({ value }) => value * 5}px;
+  height: ${({ size }) => size}px;
 
   border-width: 1px;
   border-style: solid;
@@ -36,7 +36,7 @@ function NumberBar(props: ValueRecord<number>) {
   return (
     <Container>
       {value}
-      <Bar className={`${status}-status`.toLowerCase()} value={value} />
+      <Bar className={`${status}-status`.toLowerCase()} size={value * 5} />
     </Container>
   );
 }
