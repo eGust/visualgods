@@ -2,24 +2,18 @@ import flow from 'lodash/fp/flow';
 import times from 'lodash/fp/times';
 import shuffle from 'lodash/fp/shuffle';
 
-import * as sorters from '../algorithms/sorting/index';
+import { QuickSort } from '../lib/index';
 
 interface NumberItem {
   value: number;
   index: number;
 }
 
-const {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  default: _Sorter,
-  ...Sorters
-} = sorters;
-
 const generateRandomItems: (count: number) => NumberItem[] = flow(
   (count: number) => [Math.floor(98 / count), count],
   ([step, count]) => [step, count, Math.floor((100 + step - step * count) / 2)],
   ([step, count, base]) => times(index => ({ value: base + index * step, index }), count),
-  items => shuffle(items),
+  shuffle,
 );
 
 const compareItem = ({ value: v1 }: NumberItem, { value: v2 }: NumberItem) => v1 - v2;
@@ -28,12 +22,10 @@ function runTests() {
   const rawItems = generateRandomItems(30);
   console.log('rawItems', rawItems.map(({ value }) => value));
 
-  Object.entries(Sorters).forEach(([sortName, Sorter]) => {
-    const sort = new Sorter(compareItem);
-    sort.items = [...rawItems];
-    sort.sort();
-    console.log(sortName, sort.items.map(({ value }) => value));
-  });
+  const sort = new QuickSort(compareItem);
+  sort.items = [...rawItems];
+  sort.sort();
+  console.log(sort.items.map(({ value }) => value));
 }
 
 runTests();
@@ -101,4 +93,7 @@ const dumpJson = (src) => {
 {"id":27,"method":"Debugger.getScriptSource","params":{"scriptId":"133"}}
 {"id":28,"method":"Debugger.getScriptSource","params":{"scriptId":"135"}}
 {"id":29,"method":"Runtime.getHeapUsage","params":{}}
+
+https://gist.github.com/bengourley/c3c62e41c9b579ecc1d51e9d9eb8b9d2
+https://redux.js.org/recipes/implementing-undo-history
 */

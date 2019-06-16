@@ -1,8 +1,9 @@
 module.exports = {
   root: true,
-  extends: ['airbnb', 'plugin:@typescript-eslint/recommended', 'react-hooks'],
+  extends: ['airbnb', 'plugin:@typescript-eslint/recommended'],
+  plugins: ['react-hooks'],
   rules: {
-    'no-bitwise': 1,
+    'no-bitwise': 'warn',
     indent: 'off',
     '@typescript-eslint/indent': ['error', 2],
     'react/jsx-filename-extension': [1, {

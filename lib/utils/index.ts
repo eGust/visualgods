@@ -1,5 +1,5 @@
-export class Runner {
-  protected data: any;
+export abstract class Runner {
+  protected abstract data: any;
 
   protected verify: () => boolean = () => true;
 

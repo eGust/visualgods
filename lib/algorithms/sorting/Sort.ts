@@ -18,5 +18,7 @@ export default abstract class Sort<T> extends Runner {
     this.data = value;
   }
 
+  protected data: T[] = [];
+
   public abstract sort(): void;
 }

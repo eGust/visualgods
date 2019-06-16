@@ -18,18 +18,18 @@ function partition<T>(items: T[], lo: number, hi: number, compare: Comparer<T>):
   }
 }
 
-function quicksort<T>(items: T[], lo: number, hi: number, compare: Comparer<T>) {
+function quickSort<T>(items: T[], lo: number, hi: number, compare: Comparer<T>) {
   if (lo < hi) {
     const p = partition(items, lo, hi, compare);
-    quicksort(items, lo, p, compare);
-    quicksort(items, p + 1, hi, compare);
+    quickSort(items, lo, p, compare);
+    quickSort(items, p + 1, hi, compare);
   }
 }
 
 class QuickSort<T> extends Sort<T> {
   public sort() {
     const { items, compare } = this;
-    quicksort(items, 0, items.length - 1, compare);
+    quickSort(items, 0, items.length - 1, compare);
   }
 }
 
