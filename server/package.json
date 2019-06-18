@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon --watch 'services/**/*' -e ts --exec ts-node services/server.ts",
+    "dev": "nodemon --watch 'src/**/*' -e ts --exec ts-node src/server.ts",
     "build": "tsc",
-    "sv": "ts-node services/server.ts",
+    "sv": "ts-node src/server.ts",
+    "ds": "node --inspect -r ts-node/register src/server.ts",
     "serve": "node dist/server.js"
   },
   "dependencies": {
