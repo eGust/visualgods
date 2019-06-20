@@ -6,7 +6,7 @@ import logger from 'koa-logger';
 import Router from 'koa-router';
 
 import { NODE_ENV } from './node_env';
-import createWsServer from './ws_server';
+import { dispatcher } from './dispatcher';
 
 const hostname = env.HOST || '127.0.0.1';
 const port = +(env.PORT || '3333');
@@ -15,14 +15,12 @@ function startServer() {
   console.info(`NODE_ENV: ${NODE_ENV}`);
   const app = new Koa();
   const router = new Router();
-  const apiService = createWsServer();
-  const debugService = createWsServer();
 
   app.use(logger());
   app.use(serve(resolve(__dirname, '../web')));
 
-  router.get('/api', apiService.entryPoint);
-  router.get('/visualgods', debugService.entryPoint);
+  router.get('/api', dispatcher.client.entryPoint);
+  router.get('/visualgods', dispatcher.server.entryPoint);
   app.use(router.routes());
 
   try {

@@ -1,4 +1,3 @@
-import { env } from 'process';
 import WebSocket from 'ws';
 import Koa from 'koa';
 
@@ -14,16 +13,16 @@ class TimestampId {
   }
 }
 
-interface ResponseMessage {
+export interface ResponseMessage {
   id: number;
   data: Record<string, any>;
 }
 
-interface MethodMessage extends ResponseMessage {
+export interface MethodMessage extends ResponseMessage {
   method: string;
 }
 
-class WebSocketConnection extends TimestampId {
+export class WebSocketConnection extends TimestampId {
   public readonly connection: WebSocket;
 
   public get isTerminated() { return this.terminated; }
@@ -76,22 +75,39 @@ class WebSocketConnection extends TimestampId {
   private terminated = false;
 }
 
-type MessageHandler = (connection: WebSocketConnection, message: MethodMessage) => void;
-type ErrorHandler = (connection: WebSocketConnection, error: Error) => void;
+export interface WebSocketContext {
+  connection: WebSocketConnection;
+  server: WebSocketServer;
+}
 
-const defaultMessageHandler: MessageHandler = (connection, message) => {
-  console.info('message', connection.id, message);
-  connection.respond(message);
+export type ConnectedHandler = (context: WebSocketContext) => void;
+export type MessageHandler = (context: WebSocketContext, message: MethodMessage) => void;
+export type ErrorHandler = (context: WebSocketContext, error: Error) => void;
+
+const defaultConnectedHandler: ConnectedHandler = ({ connection: { id: cId }, server: { id: sId } }) => console.error(`[connected] ${sId}.${cId}`);
+
+const defaultMessageHandler: MessageHandler = (ctx, message) => {
+  const { connection: { id: cId }, server: { id: sId } } = ctx;
+  console.info(`[message] ${sId}.${cId}`, message);
+  ctx.connection.respond(message);
 };
 
-const defaultErrorHandler: ErrorHandler = ({ id }, error) => console.error(id, error);
+const defaultErrorHandler: ErrorHandler = ({ connection: { id: cId }, server: { id: sId } }, error) => console.error(`[error] ${sId}.${cId}`, error);
 
 const PING_INTERVAL = isDev ? 60_000 : 15_000;
 
-class WebSocketServer extends TimestampId {
+interface ServerHandlers {
+  connectedHandler?: ConnectedHandler;
+  messageHandler?: MessageHandler;
+  errorHandler?: ErrorHandler;
+}
+
+export class WebSocketServer extends TimestampId {
+  public connectedHandler: ConnectedHandler;
+
   public messageHandler: MessageHandler;
 
-  public errorHandler: ErrorHandler = defaultErrorHandler;
+  public errorHandler: ErrorHandler;
 
   public readonly server: WebSocket.Server;
 
@@ -113,30 +129,40 @@ class WebSocketServer extends TimestampId {
     const { request, socket } = ctx;
     this.server.handleUpgrade(request.req, socket, Buffer.alloc(0), (connection) => {
       const conn = new WebSocketConnection(connection);
-      this.connections.set(conn.id, conn);
+      const context = { connection: conn, server: this };
+
       connection.on('message', (data) => {
         try {
           const msg = JSON.parse(data.toString()) as MethodMessage;
-          this.messageHandler(conn, msg);
+          this.messageHandler(context, msg);
         } catch (error) {
-          this.errorHandler(conn, error);
+          this.errorHandler(context, error);
         }
       });
+      this.connections.set(conn.id, conn);
+      this.connectedHandler(context);
     });
     ctx.respond = false;
     return null;
   }
 
-  public constructor(messageHandler?: MessageHandler) {
+  public findConnection(id: string): WebSocketConnection {
+    return this.connections[id];
+  }
+
+  public constructor(handlers: ServerHandlers = {}) {
     super();
     this.server = new WebSocket.Server({
       noServer: true,
       perMessageDeflate: true,
     });
 
+    this.messageHandler = handlers.messageHandler || defaultMessageHandler;
+    this.connectedHandler = handlers.connectedHandler || defaultConnectedHandler;
+    this.errorHandler = handlers.errorHandler || defaultErrorHandler;
+
     this.timer = setInterval(this.heartbeat.bind(this), PING_INTERVAL);
     this.entryPoint = this.entryPoint.bind(this);
-    this.messageHandler = messageHandler || defaultMessageHandler;
   }
 
   private heartbeat() {
@@ -161,4 +187,4 @@ class WebSocketServer extends TimestampId {
   private terminated = false;
 }
 
-export default () => new WebSocketServer();
+export default (handlers?: ServerHandlers) => new WebSocketServer(handlers);
