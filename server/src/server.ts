@@ -6,7 +6,7 @@ import logger from 'koa-logger';
 import Router from 'koa-router';
 
 import { NODE_ENV } from './node_env';
-import { dispatcher } from './dispatcher';
+import { Dispatcher } from './dispatcher';
 
 const hostname = env.HOST || '127.0.0.1';
 const port = +(env.PORT || '3333');
@@ -19,8 +19,9 @@ function startServer() {
   app.use(logger());
   app.use(serve(resolve(__dirname, '../web')));
 
-  router.get('/api', dispatcher.client.entryPoint);
-  router.get('/visualgods', dispatcher.server.entryPoint);
+  const dispatcher = new Dispatcher(port);
+  router.get('/api', dispatcher.api.entryPoint);
+  router.get('/visualgods/:token', dispatcher.service.entryPoint);
   app.use(router.routes());
 
   try {

@@ -15,11 +15,13 @@ class TimestampId {
 
 export interface ResponseMessage {
   id: number;
-  data: Record<string, any>;
+  result: Record<string, any>;
 }
 
-export interface MethodMessage extends ResponseMessage {
+export interface MethodMessage {
+  id: number;
   method: string;
+  data: Record<string, any>;
 }
 
 export class WebSocketConnection extends TimestampId {
@@ -46,6 +48,8 @@ export class WebSocketConnection extends TimestampId {
   }
 
   public disconnect() {
+    if (this.terminated) return;
+
     console.log('disconnected', this.id);
     this.terminated = true;
     this.connection.terminate();
@@ -58,10 +62,6 @@ export class WebSocketConnection extends TimestampId {
     connection.on('error', (error) => {
       console.error(this.id, error);
       // this.disconnect();
-    });
-    connection.on('close', (code, reason) => {
-      console.log('closed', this.id, { code, reason });
-      this.disconnect();
     });
     console.log('connected', this.id);
   }
@@ -80,16 +80,17 @@ export interface WebSocketContext {
   server: WebSocketServer;
 }
 
-export type ConnectedHandler = (context: WebSocketContext) => void;
+export type ConnectionHandler = (context: WebSocketContext, params?: Record<string, string>)
+=> void;
 export type MessageHandler = (context: WebSocketContext, message: MethodMessage) => void;
 export type ErrorHandler = (context: WebSocketContext, error: Error) => void;
 
-const defaultConnectedHandler: ConnectedHandler = ({ connection: { id: cId }, server: { id: sId } }) => console.error(`[connected] ${sId}.${cId}`);
+const defaultConnectionHandler: ConnectionHandler = ({ connection: { id: cId }, server: { id: sId } }, params) => console.error(`[${params ? 'connected' : 'disconnected'}] ${sId}.${cId}`, params);
 
 const defaultMessageHandler: MessageHandler = (ctx, message) => {
   const { connection: { id: cId }, server: { id: sId } } = ctx;
   console.info(`[message] ${sId}.${cId}`, message);
-  ctx.connection.respond(message);
+  ctx.connection.respond({ id: message.id, result: message.data });
 };
 
 const defaultErrorHandler: ErrorHandler = ({ connection: { id: cId }, server: { id: sId } }, error) => console.error(`[error] ${sId}.${cId}`, error);
@@ -97,13 +98,13 @@ const defaultErrorHandler: ErrorHandler = ({ connection: { id: cId }, server: { 
 const PING_INTERVAL = isDev ? 60_000 : 15_000;
 
 interface ServerHandlers {
-  connectedHandler?: ConnectedHandler;
+  connectionHandler?: ConnectionHandler;
   messageHandler?: MessageHandler;
   errorHandler?: ErrorHandler;
 }
 
 export class WebSocketServer extends TimestampId {
-  public connectedHandler: ConnectedHandler;
+  public connectionHandler: ConnectionHandler;
 
   public messageHandler: MessageHandler;
 
@@ -127,6 +128,7 @@ export class WebSocketServer extends TimestampId {
 
   public entryPoint(ctx: Koa.ParameterizedContext) {
     const { request, socket } = ctx;
+
     this.server.handleUpgrade(request.req, socket, Buffer.alloc(0), (connection) => {
       const conn = new WebSocketConnection(connection);
       const context = { connection: conn, server: this };
@@ -139,8 +141,15 @@ export class WebSocketServer extends TimestampId {
           this.errorHandler(context, error);
         }
       });
+
+      connection.on('close', (code, reason) => {
+        console.log('closed', this.id, { code, reason });
+        this.connectionHandler(context);
+        conn.disconnect();
+      });
+
       this.connections.set(conn.id, conn);
-      this.connectedHandler(context);
+      this.connectionHandler(context, ctx.params);
     });
     ctx.respond = false;
     return null;
@@ -158,7 +167,7 @@ export class WebSocketServer extends TimestampId {
     });
 
     this.messageHandler = handlers.messageHandler || defaultMessageHandler;
-    this.connectedHandler = handlers.connectedHandler || defaultConnectedHandler;
+    this.connectionHandler = handlers.connectionHandler || defaultConnectionHandler;
     this.errorHandler = handlers.errorHandler || defaultErrorHandler;
 
     this.timer = setInterval(this.heartbeat.bind(this), PING_INTERVAL);
