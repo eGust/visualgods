@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import Koa from 'koa';
 
-import { isDev } from './node_env';
+import { isDev } from './utils/env_vars';
 import { ResponseMessage, MethodMessage } from './types';
 
 function noop() {}
@@ -85,7 +85,7 @@ const defaultMessageHandler: MessageHandler = (ctx, message) => {
 
 const defaultErrorHandler: ErrorHandler = ({ connection: { id: cId }, server: { id: sId } }, error) => console.error(`[error] ${sId}.${cId}`, error);
 
-const PING_INTERVAL = isDev ? 60_000 : 15_000;
+const PING_INTERVAL = isDev ? 300_000 : 30_000;
 
 interface ServerHandlers {
   connectionHandler?: ConnectionHandler;

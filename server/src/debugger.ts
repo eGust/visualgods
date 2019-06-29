@@ -1,7 +1,9 @@
 import WebSocket from 'ws';
 
-import { ResponseMessage, MethodMessage } from './types';
+import { ResponseMessage, MethodMessage, ScriptSource } from './types';
 import { WebSocketConnection } from './ws_server';
+import parseScript from './utils/script';
+import { PROJECT_ROOT } from './utils/env_vars';
 
 export type History = Record<string, any>[];
 
@@ -60,20 +62,30 @@ export default class Debugger {
 
   private onMessage(data: string) {
     try {
-      const response = JSON.parse(data) as ResponseMessage;
-      console.info('onMessage', data);
-      console.info(response);
-      console.log('\n');
+      const response = JSON.parse(data);
       if (response.id) {
-        const { result: { task: taskId, ...result } } = response;
+        const { result: { task: taskId, ...result } } = response as ResponseMessage;
         if (taskId) {
           const task = this.tasks.get(taskId);
           task.history.push(result);
         // } else {
         }
+      } else if (response.method === 'Debugger.scriptParsed') {
+        const script = parseScript(response.params);
+        if (script) {
+          this.scripts[script.file.slice(PROJECT_ROOT.length + 1)] = script;
+        }
+        return;
       }
+
+      console.info('onMessage', response);
+      if (response.id === 4) {
+        console.log(this.scripts);
+      }
+      console.log('\n');
     } catch (e) {
-      console.error(e);
+      console.info(data);
+      console.error('onMessage', data, e);
     }
   }
 
@@ -82,4 +94,6 @@ export default class Debugger {
   private invoker: WebSocketConnection;
 
   private connection: WebSocket;
+
+  private scripts: Record<string, ScriptSource> = {};
 }

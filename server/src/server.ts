@@ -5,7 +5,7 @@ import serve from 'koa-static';
 import logger from 'koa-logger';
 import Router from 'koa-router';
 
-import { NODE_ENV } from './node_env';
+import { NODE_ENV } from './utils/env_vars';
 import { Dispatcher } from './dispatcher';
 
 const hostname = env.HOST || '127.0.0.1';
