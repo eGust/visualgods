@@ -2,9 +2,8 @@ import { resolve } from 'path';
 import { spawn } from 'child_process';
 import { createServer } from 'net';
 
-import createWsServer, {
-  WebSocketServer, WebSocketContext, MethodMessage,
-} from './ws_server';
+import createWsServer, { WebSocketServer, WebSocketContext } from './ws_server';
+import { MethodMessage } from './types';
 import Debugger from './debugger';
 
 const MIN_PORT = 9527;
@@ -40,6 +39,12 @@ export class ResourceManager {
 
   public get inspector() { return this.debugger; }
 
+  public closeService() {
+    this.service.connection.disconnect();
+    usedPort.delete(this.port);
+    this.debugger.close();
+  }
+
   public get service() { return this.vs; }
 
   public set service(val: WebSocketContext) {
@@ -48,6 +53,7 @@ export class ResourceManager {
   }
 
   public constructor(api: WebSocketContext, port: number, debugWsUrl: string) {
+    usedPort.add(port);
     this.api = api;
     this.port = port;
     this.debugWsUrl = debugWsUrl;
@@ -76,7 +82,7 @@ export class Dispatcher {
     this.listenPort = port;
     this.service = createWsServer({
       connectionHandler: this.serviceConnectionHandler.bind(this),
-      // messageHandler: this.serverMessageHandler.bind(this),
+      messageHandler: this.serviceMessageHandler.bind(this),
     });
     this.api = createWsServer({
       connectionHandler: this.apiConnectionHandler.bind(this),
@@ -88,9 +94,8 @@ export class Dispatcher {
     const apiId = context.connection.id;
     if (!params) {
       const res = this.apiResources.get(apiId);
-      res.service.connection.disconnect();
+      res.closeService();
 
-      usedPort.delete(res.port);
       this.apiResources.delete(apiId);
       this.serviceResources.delete(res.service.connection.id);
       return;
@@ -106,7 +111,6 @@ export class Dispatcher {
       const tsArgs = `--inspect=127.0.0.1:${port} -r ts-node/register src/main.ts`;
       const args = `${tsArgs} ${this.listenPort} ${apiId}`.split(' ');
       const vs = spawn('node', args, LAUNCH_OPTIONS);
-      usedPort.add(port);
 
       vs.stdout.setEncoding('utf8');
       vs.stderr.setEncoding('utf8');
@@ -129,6 +133,20 @@ export class Dispatcher {
     }
   }
 
+  private async apiMessageHandler(context: WebSocketContext, message: MethodMessage) {
+    console.log(context.connection.id, message);
+
+    const res = this.apiResources.get(context.connection.id);
+    if (!res) return;
+
+    const { method } = message;
+    if (method === 'inspect') {
+      const { action, ...params } = message.params;
+      const result = await res.inspector.inspect(message.id, action, params);
+      res.api.connection.respond({ id: message.id, result });
+    }
+  }
+
   private serviceConnectionHandler(context: WebSocketContext, params?: Record<string, any>) {
     if (!params) {
       // clean up
@@ -142,21 +160,11 @@ export class Dispatcher {
     console.log('vad service connected');
   }
 
-  private async apiMessageHandler(context: WebSocketContext, message: MethodMessage) {
-    console.log(context.connection.id, message);
+  private async serviceMessageHandler(context: WebSocketContext, message: MethodMessage) {
+    console.log('serviceMessageHandler', context.connection.id, message);
 
-    const res = this.apiResources.get(context.connection.id);
-    if (!res) return;
-
-    switch (message.method) {
-      case 'inspect': {
-        const { method, ...data } = message.data;
-        const result = await res.inspector.inspect(message.id, method, data);
-        res.api.connection.respond({ id: message.id, result });
-        break;
-      }
-      default:
-    }
+    const res = this.serviceResources.get(context.connection.id);
+    console.log(res ? 'found serviceResources' : 'not found serviceResources');
   }
 
   private apiResources = new Map<string, ResourceManager>();

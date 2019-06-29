@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "nodemon --watch 'src/**/*' -e ts --exec ts-node src/server.ts",
+    "dn": "nodemon --watch 'src/**/*' -e ts --exec node --inspect -r ts-node/register src/server.ts",
     "build": "tsc",
     "sv": "ts-node src/server.ts",
     "ds": "node --inspect -r ts-node/register src/server.ts",

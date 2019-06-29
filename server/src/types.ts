@@ -10,6 +10,12 @@ export interface ResponseMessage {
   result: Record<string, any>;
 }
 
+interface SortData {
+  action: 'sort';
+  subject: string;
+  items: NumberItem[];
+}
+
 export interface MethodMessage {
   id: number;
   method: string;

@@ -5,7 +5,7 @@ function heapSort<T>(items: T[], comparer: Comparer<T>) {
   heapify(items, comparer);
   for (let i = items.length - 1; i > 0; i -= 1) {
     swap(items, 0, i);
-    siftDown(items, 0, i);
+    siftDown(items, 0, i, comparer);
   }
 }
 

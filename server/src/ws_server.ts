@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import Koa from 'koa';
 
 import { isDev } from './node_env';
+import { ResponseMessage, MethodMessage } from './types';
 
 function noop() {}
 
@@ -11,17 +12,6 @@ class TimestampId {
   protected constructor() {
     this.id = Date.now().toString(36);
   }
-}
-
-export interface ResponseMessage {
-  id: number;
-  result: Record<string, any>;
-}
-
-export interface MethodMessage {
-  id: number;
-  method: string;
-  data: Record<string, any>;
 }
 
 export class WebSocketConnection extends TimestampId {
@@ -90,7 +80,7 @@ const defaultConnectionHandler: ConnectionHandler = ({ connection: { id: cId }, 
 const defaultMessageHandler: MessageHandler = (ctx, message) => {
   const { connection: { id: cId }, server: { id: sId } } = ctx;
   console.info(`[message] ${sId}.${cId}`, message);
-  ctx.connection.respond({ id: message.id, result: message.data });
+  ctx.connection.respond({ id: message.id, result: message.params });
 };
 
 const defaultErrorHandler: ErrorHandler = ({ connection: { id: cId }, server: { id: sId } }, error) => console.error(`[error] ${sId}.${cId}`, error);

@@ -76,3 +76,11 @@ const dumpJson = (src) => {
   return JSON.parse(src).map(dumpItem).map(decodeJson);
 };
 ```
+
+Demo:
+
+$ wscat -c ws://127.0.0.1:3333/api
+
+```json
+{"id":1,"method":"inspect","params":{"action":"Sort.heap","items":[{"key":"1","value":11},{"key":"2","value":18},{"key":"3","value":12},{"key":"4","value":15},{"key":"5","value":14}]}}
+```
