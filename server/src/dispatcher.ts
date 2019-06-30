@@ -1,9 +1,9 @@
-import { resolve } from 'path';
 import { spawn } from 'child_process';
 import { createServer } from 'net';
 
 import createWsServer, { WebSocketServer, WebSocketContext } from './ws_server';
 import { MethodMessage } from './types';
+import { SERVICE_ROOT } from './utils/env_vars';
 import Debugger from './debugger';
 
 const MIN_PORT = 9527;
@@ -17,8 +17,8 @@ function checkPortAvailable(port: number) {
       rsv(false);
     });
     srv.on('listening', () => {
-      rsv(true);
       srv.close();
+      rsv(true);
     });
     srv.listen(port, '127.0.0.1');
   });
@@ -71,7 +71,7 @@ function handleLaunchError(context: WebSocketContext, error?: Error) {
   console.error(`[launch] ${sId}.${cId}`, error);
 }
 
-const LAUNCH_OPTIONS = { cwd: resolve(__dirname, '../../lib/service') };
+const LAUNCH_OPTIONS = { cwd: SERVICE_ROOT };
 
 export class Dispatcher {
   public readonly service: WebSocketServer;
