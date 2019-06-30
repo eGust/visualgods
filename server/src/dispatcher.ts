@@ -96,8 +96,11 @@ export class Dispatcher {
       const res = this.apiResources.get(apiId);
       res.closeService();
 
-      this.apiResources.delete(apiId);
-      this.serviceResources.delete(res.service.connection.id);
+      const tm = setTimeout(() => {
+        clearTimeout(tm);
+        this.apiResources.delete(apiId);
+        this.serviceResources.delete(res.service.connection.id);
+      }, 10);
       return;
     }
 

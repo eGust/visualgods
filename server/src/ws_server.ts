@@ -125,7 +125,7 @@ export class WebSocketServer extends TimestampId {
 
       connection.on('message', (data) => {
         try {
-          const msg = JSON.parse(data.toString()) as MethodMessage;
+          const msg = Object.freeze(JSON.parse(data.toString())) as MethodMessage;
           this.messageHandler(context, msg);
         } catch (error) {
           this.errorHandler(context, error);
