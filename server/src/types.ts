@@ -53,6 +53,7 @@ export interface MappingItem {
 export interface ScriptSource {
   scriptId: string;
   file: string;
+  url: string;
   source: string;
   lineMappings: MappingItem[][];
 }

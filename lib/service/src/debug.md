@@ -84,3 +84,33 @@ $ wscat -c ws://127.0.0.1:3333/api
 ```json
 {"id":1,"method":"inspect","params":{"action":"Sort.heap","items":[{"key":"1","value":11},{"key":"2","value":18},{"key":"3","value":12},{"key":"4","value":15},{"key":"5","value":14}]}}
 ```
+
+```js
+/*
+function swap
+return
+*/
+const swap = {"id":17,"method":"Debugger.setBreakpointByUrl","params":{"lineNumber":25,"urlRegex":"/Users/sea/dev/visualgods/lib/utils/index\\.ts|file:///Users/sea/dev/visualgods/lib/utils/index\\.ts","columnNumber":4,"condition":""}}
+
+/*
+const comparer
+return
+*/
+const compare = {"id":29,"method":"Debugger.setBreakpointByUrl","params":{"lineNumber":5,"urlRegex":"/Users/sea/dev/visualgods/lib/service/src/methods/sort\\.ts|file:///Users/sea/dev/visualgods/lib/service/src/methods/sort\\.ts","columnNumber":4,"condition":""}}
+
+/*
+.sort()
+return
+*/
+const sorted = {"id":19,"method":"Debugger.setBreakpointByUrl","params":{"lineNumber":21,"urlRegex":"/Users/sea/dev/visualgods/lib/service/src/methods/sort\\.ts|file:///Users/sea/dev/visualgods/lib/service/src/methods/sort\\.ts","columnNumber":8,"condition":""}}
+
+// vars: block, local, closure
+// params.callFrames.findIndex(({ functionName }) => functionName === 'sort')
+const inspect = {"id":30,"method":"Runtime.getProperties","params":{"objectId":"{\"injectedScriptId\":1,\"id\":112}","ownProperties":false,"accessorPropertiesOnly":false,"generatePreview":true}}
+
+const next = {"id":26,"method":"Debugger.resume"}
+
+// =\s*items\[.+\]
+// items\[.+\]\s*=
+
+```

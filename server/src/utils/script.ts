@@ -46,6 +46,7 @@ function parseScript(script: ParsedScript): ScriptSource {
     const src = JSON.parse(Buffer.from(b64Json, 'base64').toString()) as SourceMap;
     return {
       scriptId: script.scriptId,
+      url: script.url,
       file: src.file,
       source: src.sourcesContent[0],
       lineMappings: decodeMappings(src.mappings),

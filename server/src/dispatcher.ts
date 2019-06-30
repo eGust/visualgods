@@ -4,7 +4,7 @@ import { createServer } from 'net';
 import createWsServer, { WebSocketServer, WebSocketContext } from './ws_server';
 import { MethodMessage } from './types';
 import { SERVICE_ROOT } from './utils/env_vars';
-import Debugger from './debugger';
+import Debugger from './debug/debugger';
 
 const MIN_PORT = 9527;
 const MAX_PORT = 29_527;

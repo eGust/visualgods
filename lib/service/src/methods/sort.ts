@@ -10,7 +10,10 @@ import Sort, {
 import { Comparer } from '../../../utils/index';
 import { NumberItem } from '../types';
 
-const comparer: Comparer<NumberItem> = (a, b) => a.value - b.value;
+const comparer: Comparer<NumberItem> = (a, b) => {
+  const r = a.value - b.value;
+  return Math.sign(r);
+};
 
 const sorters: Record<string, Sort<NumberItem>> = {
   bubble: new BubbleSort<NumberItem>(comparer),

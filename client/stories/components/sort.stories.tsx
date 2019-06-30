@@ -8,10 +8,9 @@ import { createSelector } from 'reselect';
 import { storiesOf } from '@storybook/react';
 import { number, select } from '@storybook/addon-knobs';
 
-import { ValueRecord } from '../../src/components/basic/common_types';
+import { ValueRecord, ItemStatus, ItemHighlight } from '../../src/components/basic/common_types';
 import ValueBox from '../../src/components/basic/ValueBox';
 import NumberBar from '../../src/components/basic/NumberBar';
-import { ItemStatus, ItemHighlight } from '../../src/components/basic/common_types';
 import QuickSort from '../../../lib/algorithms/sorting/implementations/QuickSort';
 
 interface NumberItem {
@@ -61,18 +60,28 @@ const SortValueComponent = ({ count, status, Component }: SortValueComponentProp
         }
       </Container>
       <span>
-        <button type="button" onClick={() => {
-          sorter.items = [...items];
-          sorter.sort();
-          setItems([...sorter.items]);
-        }}>Sort</button>
-        <button type="button" onClick={() => {
-          setItems(itemsSelector({ count }));
-        }}>Reload</button>
+        <button
+          type="button"
+          onClick={() => {
+            sorter.items = [...items];
+            sorter.sort();
+            setItems([...sorter.items]);
+          }}
+        >
+          Sort
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setItems(itemsSelector({ count }));
+          }}
+        >
+          Reload
+        </button>
       </span>
     </div>
   );
-}
+};
 
 const buildComponent = (Component: (props: ValueRecord<number>) => JSX.Element) => () => {
   const count = number('count', 24);
@@ -87,7 +96,7 @@ const buildComponent = (Component: (props: ValueRecord<number>) => JSX.Element) 
     ItemStatus.Normal,
   );
   return (<SortValueComponent {...{ count, status, Component }} />);
-}
+};
 
 storiesOf('Components.Sort', module)
   .add('Box', buildComponent(ValueBox))
