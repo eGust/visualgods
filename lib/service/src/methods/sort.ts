@@ -12,7 +12,7 @@ import { NumberItem } from '../types';
 
 const comparer: Comparer<NumberItem> = (a, b) => a.value - b.value;
 
-const sorters = {
+const sorters: Record<string, Sort<NumberItem>> = {
   bubble: new BubbleSort<NumberItem>(comparer),
   heap: new HeapSort<NumberItem>(comparer),
   insertion: new InsertionSort<NumberItem>(comparer),
@@ -22,12 +22,14 @@ const sorters = {
   selection: new SelectionSort<NumberItem>(comparer),
 };
 
-type Sorter = (params: { task: number; items: NumberItem[] }) =>
-{ task: number; sorted: NumberItem[] };
+type SortParams = Readonly<{ task: number; items: NumberItem[] }>;
+
+type Sorter = (params: SortParams) => { task: number; sorted: NumberItem[] };
 
 function buildSorter(sorter: Sort<NumberItem>): Sorter {
-  return ({ task, items }) => {
-    sorter.items = items; // eslint-disable-line no-param-reassign
+  return ({ task, items }: SortParams) => {
+    // eslint-disable-next-line no-param-reassign
+    sorter.items = items.map(item => Object.freeze(item));
     sorter.sort();
     return { task, sorted: sorter.items };
   };
