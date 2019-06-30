@@ -7,11 +7,11 @@ export type NumberItem = KeyItem<number>;
 
 export interface ResponseMessage {
   id: number;
-  result: Record<string, any>;
+  result?: Record<string, any>;
 }
 
 export interface MethodMessage {
-  id: number;
+  id?: number;
   method: string;
   params?: Record<string, any>;
 }
@@ -56,4 +56,18 @@ export interface ScriptSource {
   url: string;
   source: string;
   lineMappings: MappingItem[][];
+}
+
+export interface LineMapping {
+  line: number;
+  mappings: MappingItem[];
+  url: string;
+  scriptId: string;
+}
+
+export interface Breakpoint {
+  lineNumber: number;
+  columnNumber: number;
+  url: string;
+  name: string;
 }

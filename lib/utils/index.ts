@@ -17,7 +17,6 @@ export type Runnable = Runner | { new(): Runner };
 /**
  * Swap two element in an array
  *
- * @function swap
  * @param {T[]} list `array` array to swap
  * @param {number} i `integer` index 1
  * @param {number} j `integer` index 2
@@ -45,7 +44,6 @@ export function defaultCompare<T>(a: T, b: T) {
 /**
  * Generate random integer between `lo` and `hi`
  *
- * @function randomInt
  * @param {integer} hi `integer` high exclusive boundary
  * @param {integer} [lo=0] `integer` low inclusive boundary
  * @returns {integer} `integer`

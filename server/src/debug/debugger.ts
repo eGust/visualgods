@@ -1,9 +1,14 @@
 import WebSocket from 'ws';
 
-import { ResponseMessage, MethodMessage, ScriptSource } from '../types';
+import {
+  MethodMessage, ResponseMessage,
+  ScriptSource, LineMapping, Breakpoint, ParsedScript,
+} from '../types';
 import { WebSocketConnection } from '../ws_server';
 import parseScript from '../utils/script';
 import { PROJECT_ROOT } from '../utils/env_vars';
+
+import Sort from './sort';
 
 export type History = Record<string, any>[];
 
@@ -21,6 +26,10 @@ const INIT_MESSAGES_JSON = `
 `.trim();
 
 const INIT_MESSAGES = Object.freeze(JSON.parse(`[${INIT_MESSAGES_JSON.split('\n').join(',')}]`));
+
+type BreakpointsFinder = (scripts: Record<string, ScriptSource>) => Record<string, LineMapping>;
+
+const SUBJECT_BP_FINDERS: Record<string, BreakpointsFinder> = { Sort };
 
 export default class Debugger {
   public inspect(id: number, method: string, params: Record<string, any>): Promise<History> {
@@ -41,69 +50,172 @@ export default class Debugger {
   public constructor(invoker: WebSocketConnection, url: string) {
     this.invoker = invoker;
     this.connection = new WebSocket(url);
-    this.connection.on('message', this.onInitMessage.bind(this));
+
+    // bind
+    this.send = this.send.bind(this);
+    this.defaultMessageHandler = this.defaultMessageHandler.bind(this);
+    this.defaultResponseHandler = this.defaultResponseHandler.bind(this);
+
+    // init
+    this.messageHandler = this.initMessageHandler.bind(this);
+    this.responseHandler = this.initResponseHandler.bind(this);
     this.connection.on('open', () => {
-      this.onInitMessage('{"id":"0"}');
+      this.initResponseHandler({ id: 0 });
+    });
+
+    this.connection.on('message', (data) => {
+      const rawMessage = data.toString();
+      try {
+        const mr = JSON.parse(rawMessage);
+        if (mr.method) {
+          this.messageHandler(mr);
+        } else {
+          this.responseHandler(mr);
+        }
+      } catch (e) {
+        console.info('on:message', rawMessage);
+        console.error(e);
+      }
     });
   }
 
-  private send(message: MethodMessage) {
-    this.connection.send(JSON.stringify(message));
+  private send(message: MethodMessage): number {
+    if (message.id) {
+      this.connection.send(JSON.stringify(message));
+      return message.id;
+    }
+
+    const id = this.msgId;
+    this.msgId += 1;
+    this.connection.send(JSON.stringify({ ...message, id }));
+    return id;
   }
 
-  private startTask({ id, method, params }: MethodMessage) {
+  private async clearBreakpoints() {
+    console.log(this.breakpoints);
+  }
+
+  private async setupBreakpoints(subject: string) {
+    let bps = this.breakpoints[subject];
+    if (!bps) {
+      const findBps = SUBJECT_BP_FINDERS[subject];
+      if (findBps) {
+        const bpLineMappings = findBps(this.scripts);
+        console.log('setupBreakpoints', bpLineMappings);
+        if (!bpLineMappings) return;
+
+        bps = await this.convertBreakpoints(bpLineMappings);
+        this.breakpoints[subject] = bps;
+        console.log(bps);
+      }
+    }
+
+    if (!bps) return;
+    const oldResponseHandler = this.responseHandler;
+
+    try {
+      const resolves: Record<string, {
+        name: string;
+        resolve: (value: { name: string; breakpointId: string }) => void;
+      }> = {};
+
+      this.responseHandler = ({ id, result: { breakpointId, ...result } }) => {
+        const { name, resolve } = resolves[id];
+        resolve({ ...result, name, breakpointId });
+      };
+
+      const breakpoints = await Promise.all(
+        bps.map(({ name, ...params }) => new Promise((resolve) => {
+          const id = this.send({ method: 'Debugger.setBreakpointByUrl', params });
+          resolves[id] = { name, resolve };
+        })),
+      );
+      console.log({ breakpoints });
+    } finally {
+      this.responseHandler = oldResponseHandler;
+    }
+  }
+
+  private async convertBreakpoints(src: Record<string, LineMapping>): Promise<Breakpoint[]> {
+    const oldResponseHandler = this.responseHandler;
+    try {
+      const resolves: Record<string, {
+        name: string;
+        url: string;
+        resolve: (value: Breakpoint) => void;
+      }> = {};
+
+      this.responseHandler = ({ id, result: { locations: [location] } }) => {
+        const { name, url, resolve } = resolves[id];
+        const { lineNumber, columnNumber } = location;
+        const bp = {
+          name,
+          url,
+          lineNumber,
+          columnNumber,
+        };
+        console.log('getPossibleBreakpoints', location.scriptId, bp);
+        resolve(bp);
+      };
+
+      const results = await Promise.all<Breakpoint>(Object.entries(src)
+        .map(([name, bp]) => new Promise((resolve) => {
+          const { line: lineNumber, scriptId, mappings } = bp;
+          const params = {
+            start: { lineNumber, scriptId, columnNumber: null },
+            end: { lineNumber, scriptId, columnNumber: null },
+          };
+          ([{ col: params.start.columnNumber }, { col: params.end.columnNumber }] = mappings);
+
+          const id = this.send({ method: 'Debugger.getPossibleBreakpoints', params });
+          resolves[id] = { name, url: bp.url, resolve };
+        })));
+      return results;
+    } finally {
+      this.responseHandler = oldResponseHandler;
+    }
+  }
+
+  private async startTask({ id, method, params }: MethodMessage) {
     console.log('startTask', { id, method, params });
+    await this.clearBreakpoints();
+    await this.setupBreakpoints(method.split('.')[0]);
     this.invoker.send({ id, method, params: { ...params, task: id } });
   }
 
-  private onMessage(data: string) {
-    try {
-      const response = JSON.parse(data);
-      if (response.id) {
-        const { result: { task: taskId, ...result } } = response as ResponseMessage;
-        if (taskId) {
-          const task = this.tasks.get(taskId);
-          task.history.push(result);
-        // } else {
-        }
-      } else if (response.method === 'Debugger.scriptParsed') {
-        const script = parseScript(response.params);
-        if (script) {
-          this.scripts[script.file.slice(PROJECT_ROOT.length + 1)] = script;
-        }
-        return;
-      }
+  private defaultMessageHandler(message: MethodMessage) {
+    console.info('defaultMessageHandler', message, this.msgId);
+  }
 
-      console.info('onMessage', response);
-      if (response.id === 4) {
-        console.log(this.scripts);
-      }
-      console.log('\n');
-    } catch (e) {
-      console.info(data);
-      console.error('onMessage', data, e);
+  private defaultResponseHandler(response: ResponseMessage) {
+    console.info('defaultResponseHandler', response, this.msgId);
+  }
+
+  private initMessageHandler(message: MethodMessage) {
+    if (message.method !== 'Debugger.scriptParsed') return;
+
+    const script = parseScript(message.params as ParsedScript);
+    if (script) {
+      this.scripts[script.file.slice(PROJECT_ROOT.length + 1)] = script;
     }
   }
 
-  private onInitMessage(data: string) {
-    const response = JSON.parse(data);
-    if (response.id) {
-      const id = +response.id;
-      const initMsg = INIT_MESSAGES[id];
-      if (initMsg) {
-        this.send({ id: id + 1, ...initMsg });
-      } else {
-        // console.log(this.scripts);
-        this.msgId = id;
-        this.connection.on('message', this.onMessage.bind(this));
-      }
-    } else if (response.method === 'Debugger.scriptParsed') {
-      const script = parseScript(response.params);
-      if (script) {
-        this.scripts[script.file.slice(PROJECT_ROOT.length + 1)] = script;
-      }
+  private initResponseHandler(response: ResponseMessage) {
+    const { id } = response;
+    const initMsg = INIT_MESSAGES[id];
+    if (initMsg) {
+      this.send({ id: id + 1, ...initMsg });
+    } else {
+      console.log('init:done', id, this.scripts);
+      this.msgId = id;
+      this.messageHandler = this.defaultMessageHandler;
+      this.responseHandler = this.defaultResponseHandler;
     }
   }
+
+  private messageHandler: (message: MethodMessage) => void;
+
+  private responseHandler: (response: ResponseMessage) => void;
 
   private tasks = new Map<number, Task>();
 
@@ -114,4 +226,6 @@ export default class Debugger {
   private scripts: Record<string, ScriptSource> = {};
 
   private msgId: number = 0;
+
+  private breakpoints: Record<string, Breakpoint[]> = {};
 }
