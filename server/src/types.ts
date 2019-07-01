@@ -71,3 +71,41 @@ export interface Breakpoint {
   url: string;
   name: string;
 }
+
+export interface DebugLocation {
+  scriptId: string;
+  lineNumber: number;
+  columnNumber: number;
+}
+
+export interface DebugScope {
+  type: 'global' | 'local' | 'with' | 'closure' | 'catch' | 'block' | 'script' | 'eval' | 'module';
+  object: Record<string, any>;
+  name?: string;
+  startLocation?: DebugLocation;
+  endLocation?: DebugLocation;
+}
+
+export interface DebugCallFrame {
+  callFrameId: string;
+  scopeChain: DebugScope[];
+  functionName: string;
+  location: DebugLocation;
+  this: Record<string, any>;
+  url: string;
+
+  functionLocation?: DebugLocation;
+  returnValue?: Record<string, any>;
+}
+
+export interface DebugPaused {
+  callFrames: DebugCallFrame[];
+  reason: string;
+
+  data?: Record<string, any>;
+  hitBreakpoints?: string[];
+  asyncStackTrace?: {
+    callFrames: DebugCallFrame[];
+    description?: string;
+  };
+}

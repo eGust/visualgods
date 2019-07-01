@@ -3,6 +3,7 @@ import WebSocket from 'ws';
 import {
   MethodMessage, ResponseMessage,
   ScriptSource, LineMapping, Breakpoint, ParsedScript,
+  DebugPaused,
 } from '../types';
 import { WebSocketConnection } from '../ws_server';
 import parseScript from '../utils/script';
@@ -12,10 +13,9 @@ import Sort from './sort';
 
 export type History = Record<string, any>[];
 
-interface Task {
-  history: History;
-  resolve: (value: Record<string, any>[]) => void;
-}
+type ResultPromise = Promise<Record<string, any>>;
+
+interface ActiveBreakpoint { name: string; breakpointId: string }
 
 const INIT_MESSAGES_JSON = `
 { "method": "Debugger.enable", "params": { "maxScriptsCacheSize": 100000000 } }
@@ -23,6 +23,7 @@ const INIT_MESSAGES_JSON = `
 { "method": "Debugger.setAsyncCallStackDepth", "params": { "maxDepth": 32 } }
 { "method": "Debugger.setBlackboxPatterns", "params": { "patterns": [] } }
 { "method": "Debugger.setBreakpointsActive", "params":{ "active": true } }
+{ "method": "Runtime.enable" }
 `.trim();
 
 const INIT_MESSAGES = Object.freeze(JSON.parse(`[${INIT_MESSAGES_JSON.split('\n').join(',')}]`));
@@ -37,22 +38,24 @@ export default class Debugger {
     await this.setupBreakpoints(category);
   }
 
-  public inspect(id: number, method: string, params: Record<string, any>): Promise<History> {
-    return new Promise((resolve) => {
-      const task = {
-        history: [],
-        resolve,
-      };
-      this.tasks.set(id, task);
-      this.startTask({ id, method, params });
-    });
+  public inspect(id: number, method: string, params: Record<string, any>) {
+    this.historyRecords = [];
+    this.messageHandler = this.debuggingMessageHandler;
+    this.responseHandler = this.debuggingResponseHandler;
+    this.startTask({ id, method, params });
+  }
+
+  public reset() {
+    this.messageHandler = this.defaultMessageHandler;
+    this.responseHandler = this.defaultResponseHandler;
+    this.resolveTask();
   }
 
   public close() {
     this.connection.close();
   }
 
-  public get lastTask() { return this.taskPromise; }
+  public get lastTask() { return this.lastTaskPromise; }
 
   public constructor(invoker: WebSocketConnection, url: string) {
     this.invoker = invoker;
@@ -66,7 +69,7 @@ export default class Debugger {
     // init
     this.messageHandler = this.initMessageHandler.bind(this);
     this.responseHandler = this.initResponseHandler.bind(this);
-    this.taskPromise = new Promise<Record<string, any>>((resolve) => {
+    this.lastTaskPromise = new Promise<Record<string, any>>((resolve) => {
       this.taskResolver = resolve;
     });
     this.connection.on('open', () => {
@@ -89,6 +92,7 @@ export default class Debugger {
     });
   }
 
+  // private
   private send(message: MethodMessage): number {
     if (message.id) {
       this.connection.send(JSON.stringify(message));
@@ -101,8 +105,30 @@ export default class Debugger {
     return id;
   }
 
+  // TODO: extract to BreakpointsManger
   private async clearBreakpoints() {
-    console.log(this.breakpoints);
+    const { activeBreakpoints } = this;
+    console.log('clearBreakpoints', activeBreakpoints);
+    if (!Object.keys(activeBreakpoints).length) return;
+
+    const oldResponseHandler = this.responseHandler;
+    try {
+      const resolves: Record<string, () => void> = {};
+
+      this.responseHandler = ({ id }) => {
+        resolves[id]();
+      };
+
+      await Promise.all(
+        Object.keys(activeBreakpoints).map(breakpointId => new Promise<void>((resolve) => {
+          const id = this.send({ method: 'Debugger.removeBreakpoint', params: { breakpointId } });
+          resolves[id] = resolve;
+        })),
+      );
+      this.activeBreakpoints = {};
+    } finally {
+      this.responseHandler = oldResponseHandler;
+    }
   }
 
   private async setupBreakpoints(subject: string) {
@@ -126,21 +152,24 @@ export default class Debugger {
     try {
       const resolves: Record<string, {
         name: string;
-        resolve: (value: { name: string; breakpointId: string }) => void;
+        resolve: () => void;
       }> = {};
 
-      this.responseHandler = ({ id, result: { breakpointId, ...result } }) => {
+      const breakpoints = {};
+      this.responseHandler = ({ id, result: { breakpointId } }) => {
         const { name, resolve } = resolves[id];
-        resolve({ ...result, name, breakpointId });
+        breakpoints[breakpointId] = name;
+        resolve();
       };
 
-      const breakpoints = await Promise.all(
-        bps.map(({ name, ...params }) => new Promise((resolve) => {
+      await Promise.all(
+        bps.map(({ name, ...params }) => new Promise<void>((resolve) => {
           const id = this.send({ method: 'Debugger.setBreakpointByUrl', params });
           resolves[id] = { name, resolve };
         })),
       );
-      console.log({ breakpoints });
+      this.activeBreakpoints = breakpoints;
+      console.log('breakpoints set', { breakpoints });
     } finally {
       this.responseHandler = oldResponseHandler;
     }
@@ -191,6 +220,56 @@ export default class Debugger {
     this.invoker.send({ id, method, params: { ...params, task: id } });
   }
 
+  private resolveTask(result: Record<string, any> = {}) {
+    if (!this.taskResolver) return;
+    this.taskResolver(result);
+    this.taskResolver = null;
+  }
+
+  // pause/resume handlers
+  private debuggingMessageHandler({ method, params }: MethodMessage) {
+    console.info('debuggingMessageHandler', { method, params }, this.msgId);
+    if (method === 'Debugger.paused') {
+      const { hitBreakpoints: [bpId = ''] = [], callFrames } = params as DebugPaused;
+      const bpName = this.activeBreakpoints[bpId];
+      if (bpName) {
+        // /^@(\w+):(\d+)\[(.+)\]$/.test(bpName)
+        const sortIndex = callFrames.findIndex(({ functionName }) => functionName === 'sort');
+        console.log({ name: bpName, id: bpId, callFrames });
+        if (sortIndex > 0) {
+          const objects = callFrames.slice(0, sortIndex - 1)
+            .map(({ functionName, scopeChain }) => ({
+              functionName,
+              scopeObjects: scopeChain
+                .filter(({ type }) => type === 'local' || type === 'block')
+                .map(({ type, object: { objectId } }) => ({ type, objectId })),
+            }));
+
+          objects.forEach(({ scopeObjects }) => {
+            scopeObjects.forEach(({ objectId }) => {
+              this.send({
+                method: 'Runtime.getProperties',
+                params: {
+                  objectId,
+                  ownProperties: false,
+                  accessorPropertiesOnly: false,
+                  generatePreview: true,
+                },
+              });
+            });
+          });
+          console.log({ objects });
+        }
+      }
+      // this.send({ method: 'Debugger.resume' });
+    }
+  }
+
+  private debuggingResponseHandler(response: ResponseMessage) {
+    console.info('debuggingResponseHandler', response, this.msgId);
+  }
+
+  // default handlers
   private defaultMessageHandler(message: MethodMessage) {
     console.info('defaultMessageHandler', message, this.msgId);
   }
@@ -199,6 +278,7 @@ export default class Debugger {
     console.info('defaultResponseHandler', response, this.msgId);
   }
 
+  // init handlers
   private initMessageHandler(message: MethodMessage) {
     if (message.method !== 'Debugger.scriptParsed') return;
 
@@ -216,17 +296,14 @@ export default class Debugger {
     } else {
       console.log('init:done', id, this.scripts);
       this.msgId = id;
-      this.messageHandler = this.defaultMessageHandler;
-      this.responseHandler = this.defaultResponseHandler;
-      this.taskResolver({ categories: Object.keys(SUBJECT_BP_FINDERS) });
+      this.resolveTask({ categories: Object.keys(SUBJECT_BP_FINDERS) });
+      this.reset();
     }
   }
 
   private messageHandler: (message: MethodMessage) => void;
 
   private responseHandler: (response: ResponseMessage) => void;
-
-  private tasks = new Map<number, Task>();
 
   private invoker: WebSocketConnection;
 
@@ -238,7 +315,11 @@ export default class Debugger {
 
   private breakpoints: Record<string, Breakpoint[]> = {};
 
-  private taskPromise: Promise<Record<string, any>>;
+  private activeBreakpoints: Record<string, string> = {};
+
+  private lastTaskPromise: ResultPromise;
 
   private taskResolver: (result: Record<string, any>) => void;
+
+  private historyRecords: History = [];
 }

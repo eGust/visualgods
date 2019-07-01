@@ -43,12 +43,12 @@ export class ResManager {
 
   public async select(_id: number, { category = null }) {
     if (this.category === category) {
-      return { code: 0, message: 'same' };
+      return { message: 'same' };
     }
 
     await this.debugger.selectCategory(category);
     this.category = category;
-    return { code: 0, message: 'selected' };
+    return { message: 'selected' };
   }
 
   public async inspect(id: number, { action = '', ...params }: Record<string, any>) {
@@ -56,7 +56,7 @@ export class ResManager {
     if (!action) throw Error('No action');
 
     this.debugger.inspect(id, `${this.selected}.${action}`, params);
-    return {};
+    return { message: 'task started' };
   }
 
   public closeService() {
