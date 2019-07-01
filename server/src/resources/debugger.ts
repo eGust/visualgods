@@ -32,6 +32,11 @@ type BreakpointsFinder = (scripts: Record<string, ScriptSource>) => Record<strin
 const SUBJECT_BP_FINDERS: Record<string, BreakpointsFinder> = { Sort };
 
 export default class Debugger {
+  public async selectCategory(category) {
+    await this.clearBreakpoints();
+    await this.setupBreakpoints(category);
+  }
+
   public inspect(id: number, method: string, params: Record<string, any>): Promise<History> {
     return new Promise((resolve) => {
       const task = {
@@ -47,6 +52,8 @@ export default class Debugger {
     this.connection.close();
   }
 
+  public get lastTask() { return this.taskPromise; }
+
   public constructor(invoker: WebSocketConnection, url: string) {
     this.invoker = invoker;
     this.connection = new WebSocket(url);
@@ -59,6 +66,9 @@ export default class Debugger {
     // init
     this.messageHandler = this.initMessageHandler.bind(this);
     this.responseHandler = this.initResponseHandler.bind(this);
+    this.taskPromise = new Promise<Record<string, any>>((resolve) => {
+      this.taskResolver = resolve;
+    });
     this.connection.on('open', () => {
       this.initResponseHandler({ id: 0 });
     });
@@ -176,10 +186,8 @@ export default class Debugger {
     }
   }
 
-  private async startTask({ id, method, params }: MethodMessage) {
+  private startTask({ id, method, params }: MethodMessage) {
     console.log('startTask', { id, method, params });
-    await this.clearBreakpoints();
-    await this.setupBreakpoints(method.split('.')[0]);
     this.invoker.send({ id, method, params: { ...params, task: id } });
   }
 
@@ -210,6 +218,7 @@ export default class Debugger {
       this.msgId = id;
       this.messageHandler = this.defaultMessageHandler;
       this.responseHandler = this.defaultResponseHandler;
+      this.taskResolver({ categories: Object.keys(SUBJECT_BP_FINDERS) });
     }
   }
 
@@ -228,4 +237,8 @@ export default class Debugger {
   private msgId: number = 0;
 
   private breakpoints: Record<string, Breakpoint[]> = {};
+
+  private taskPromise: Promise<Record<string, any>>;
+
+  private taskResolver: (result: Record<string, any>) => void;
 }

@@ -7,6 +7,8 @@ import { ResManager, findAvailablePort, handleLaunchError } from './resources/re
 
 const LAUNCH_OPTIONS = { cwd: SERVICE_ROOT };
 
+type ResMethod = (id: number, params: Record<string, any>) => Promise<Record<string, any>>;
+
 export default class Dispatcher {
   public readonly service: WebSocketServer;
 
@@ -76,15 +78,23 @@ export default class Dispatcher {
     const res = this.apiResources.get(context.connection.id);
     if (!res) return;
 
-    const { method } = message;
-    if (method === 'inspect') {
-      const { action, ...params } = message.params;
-      const result = await res.debugger.inspect(message.id, action, params);
-      res.api.connection.respond({ id: message.id, result });
+    const { id, params } = message;
+    try {
+      const method = res[message.method] as ResMethod;
+      if (method) {
+        const result = await method(id, params);
+        console.info('apiMessageHandler', { id, result });
+        res.api.connection.respond({ id, result });
+      } else {
+        console.warn('apiMessageHandler:no_method', message);
+        res.api.connection.respond({ id, result: { message } });
+      }
+    } catch (e) {
+      console.error('apiMessageHandler:error', e);
     }
   }
 
-  private serviceConnectionHandler(context: WebSocketContext, params?: Record<string, any>) {
+  private async serviceConnectionHandler(context: WebSocketContext, params?: Record<string, any>) {
     if (!params) {
       // clean up
       return;
@@ -92,9 +102,10 @@ export default class Dispatcher {
 
     console.log('serverConnectionHandler', params);
     const res = this.apiResources.get(params.token);
-    res.service = context;
     this.serviceResources.set(context.connection.id, res);
-    console.log('vad service connected');
+    const result = await res.setService(context);
+    res.api.connection.send({ method: 'ready', params: result });
+    console.log('vad service connected', result);
   }
 
   private async serviceMessageHandler(context: WebSocketContext, message: MethodMessage) {

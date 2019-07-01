@@ -39,19 +39,38 @@ export class ResManager {
 
   public readonly port: number;
 
-  public get debugger() { return this.debug; }
+  public get selected() { return this.category; }
+
+  public async select(_id: number, { category = null }) {
+    if (this.category === category) {
+      return { code: 0, message: 'same' };
+    }
+
+    await this.debugger.selectCategory(category);
+    this.category = category;
+    return { code: 0, message: 'selected' };
+  }
+
+  public async inspect(id: number, { action = '', ...params }: Record<string, any>) {
+    if (!this.selected) throw Error('No category selected');
+    if (!action) throw Error('No action');
+
+    this.debugger.inspect(id, `${this.selected}.${action}`, params);
+    return {};
+  }
 
   public closeService() {
     this.service.connection.disconnect();
     usedPort.delete(this.port);
-    this.debug.close();
+    this.debugger.close();
   }
 
   public get service() { return this.vs; }
 
-  public set service(val: WebSocketContext) {
+  public async setService(val: WebSocketContext) {
     this.vs = val;
-    this.debug = new Debugger(this.vs.connection, this.debugWsUrl);
+    this.debugger = new Debugger(this.vs.connection, this.debugWsUrl);
+    return this.debugger.lastTask;
   }
 
   public constructor(api: WebSocketContext, port: number, debugWsUrl: string) {
@@ -59,11 +78,16 @@ export class ResManager {
     this.api = api;
     this.port = port;
     this.debugWsUrl = debugWsUrl;
+
+    this.inspect = this.inspect.bind(this);
+    this.select = this.select.bind(this);
   }
 
   private vs: WebSocketContext;
 
   private debugWsUrl: string;
 
-  private debug: Debugger;
+  private debugger: Debugger;
+
+  private category: string = null;
 }
