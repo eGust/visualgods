@@ -130,7 +130,7 @@ export function findAllBreakpoints(scripts: Record<string, ScriptSource>) {
         } else {
           key = 'w';
         }
-        breakpoints[`${key}${rwId}`] = {
+        breakpoints[`items[${key}]${rwId}`] = {
           line: item.line,
           mappings: [item.mappings[0], item.mappings[item.mappings.length - 1]],
           url,

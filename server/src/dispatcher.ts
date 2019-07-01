@@ -1,79 +1,13 @@
 import { spawn } from 'child_process';
-import { createServer } from 'net';
 
 import createWsServer, { WebSocketServer, WebSocketContext } from './ws_server';
 import { MethodMessage } from './types';
 import { SERVICE_ROOT } from './utils/env_vars';
-import Debugger from './debug/debugger';
-
-const MIN_PORT = 9527;
-const MAX_PORT = 29_527;
-const usedPort = new Set<number>();
-
-function checkPortAvailable(port: number) {
-  return new Promise<boolean>((rsv) => {
-    const srv = createServer();
-    srv.on('error', () => {
-      rsv(false);
-    });
-    srv.on('listening', () => {
-      srv.close();
-      rsv(true);
-    });
-    srv.listen(port, '127.0.0.1');
-  });
-}
-
-async function findAvailablePort(from: number = MIN_PORT) {
-  for (let port = from; port < MAX_PORT; port += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    if (!usedPort.has(port) && await checkPortAvailable(port)) return port;
-  }
-  return null;
-}
-
-export class ResourceManager {
-  public readonly api: WebSocketContext;
-
-  public readonly port: number;
-
-  public get inspector() { return this.debugger; }
-
-  public closeService() {
-    this.service.connection.disconnect();
-    usedPort.delete(this.port);
-    this.debugger.close();
-  }
-
-  public get service() { return this.vs; }
-
-  public set service(val: WebSocketContext) {
-    this.vs = val;
-    this.debugger = new Debugger(this.vs.connection, this.debugWsUrl);
-  }
-
-  public constructor(api: WebSocketContext, port: number, debugWsUrl: string) {
-    usedPort.add(port);
-    this.api = api;
-    this.port = port;
-    this.debugWsUrl = debugWsUrl;
-  }
-
-  private vs: WebSocketContext;
-
-  private debugWsUrl: string;
-
-  private debugger: Debugger;
-}
-
-function handleLaunchError(context: WebSocketContext, error?: Error) {
-  const { server: { id: sId }, connection: { id: cId } } = context;
-  console.error(`[launch] ${sId}.${cId}`, error);
-}
+import { ResManager, findAvailablePort, handleLaunchError } from './resources/res_manager';
 
 const LAUNCH_OPTIONS = { cwd: SERVICE_ROOT };
 
-export class Dispatcher {
+export default class Dispatcher {
   public readonly service: WebSocketServer;
 
   public readonly api: WebSocketServer;
@@ -128,7 +62,7 @@ export class Dispatcher {
         console.info('ws', m && m[1]);
         if (!m) return;
 
-        this.apiResources.set(apiId, new ResourceManager(context, port, m[1]));
+        this.apiResources.set(apiId, new ResManager(context, port, m[1]));
       });
       console.info('launched', args, params);
     } catch (e) {
@@ -145,7 +79,7 @@ export class Dispatcher {
     const { method } = message;
     if (method === 'inspect') {
       const { action, ...params } = message.params;
-      const result = await res.inspector.inspect(message.id, action, params);
+      const result = await res.debugger.inspect(message.id, action, params);
       res.api.connection.respond({ id: message.id, result });
     }
   }
@@ -170,9 +104,9 @@ export class Dispatcher {
     console.log(res ? 'found serviceResources' : 'not found serviceResources');
   }
 
-  private apiResources = new Map<string, ResourceManager>();
+  private apiResources = new Map<string, ResManager>();
 
-  private serviceResources = new Map<string, ResourceManager>();
+  private serviceResources = new Map<string, ResManager>();
 
   private listenPort: number;
 }
