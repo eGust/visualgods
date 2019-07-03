@@ -1,12 +1,12 @@
 import WebSocket from 'ws';
 
+import { MethodMessage, ResponseMessage } from '../types';
 import {
-  MethodMessage, ResponseMessage,
   ScriptSource, LineMapping, Breakpoint, ParsedScript,
   DebugPaused,
-} from '../types';
+} from './types';
 import { WebSocketConnection } from '../ws_server';
-import parseScript from '../utils/script';
+import parseScript from './parse_script';
 import { PROJECT_ROOT } from '../utils/env_vars';
 
 import Sort from './sort';
@@ -14,8 +14,6 @@ import Sort from './sort';
 export type History = Record<string, any>[];
 
 type ResultPromise = Promise<Record<string, any>>;
-
-interface ActiveBreakpoint { name: string; breakpointId: string }
 
 const INIT_MESSAGES_JSON = `
 { "method": "Debugger.enable", "params": { "maxScriptsCacheSize": 100000000 } }
