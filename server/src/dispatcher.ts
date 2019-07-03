@@ -112,7 +112,12 @@ export default class Dispatcher {
     console.log('serviceMessageHandler', context.connection.id, message);
 
     const res = this.serviceResources.get(context.connection.id);
-    console.log(res ? 'found serviceResources' : 'not found serviceResources');
+    if (!res) {
+      console.log('not found serviceResources');
+      return;
+    }
+
+    console.log(res.getHistory());
   }
 
   private apiResources = new Map<string, ResManager>();

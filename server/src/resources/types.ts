@@ -96,3 +96,52 @@ export type LineMappings = {
   mappings: MappingItem[];
   line: number;
 }[];
+
+type RuntimeType = 'object' | 'function' | 'undefined' | 'string' | 'number'
+| 'boolean' | 'symbol' | 'bigint';
+
+type RuntimeSubType = 'array' | 'null' | 'node' | 'regexp' | 'date' | 'map'
+| 'set' | 'weakmap' | 'weakset' | 'iterator' | 'generator' | 'error';
+
+interface RuntimePropertyPreview {
+  name: string;
+  type: RuntimeType;
+  value?: string;
+  valuePreview?: RuntimeObjectPreview;
+  subtype?: RuntimeSubType;
+}
+
+export interface RuntimeObjectPreview {
+  type: RuntimeType;
+  overflow: boolean;
+  properties: RuntimePropertyPreview[];
+
+  subtype?: RuntimeSubType;
+  description?: string;
+  entries?: { key?: RuntimeObjectPreview; value: RuntimeObjectPreview }[];
+}
+
+export interface RuntimeRemoteObject {
+  type: RuntimeType;
+  subtype?: RuntimeSubType | 'proxy' | 'promise' | 'typedarray' | 'arraybuffer' | 'dataview';
+  className?: string;
+  value?: any;
+  description?: string;
+  objectId?: string;
+  unserializableValue?: string;
+  preview?: RuntimeObjectPreview;
+}
+
+export interface RtPropertyDescriptor {
+  name: string;
+  value?: RuntimeRemoteObject;
+  get?: RuntimeRemoteObject;
+  set?: RuntimeRemoteObject;
+  symbol?: RuntimeRemoteObject;
+
+  configurable: boolean;
+  enumerable: boolean;
+  writable?: boolean;
+  wasThrown?: boolean;
+  isOwn?: boolean;
+}

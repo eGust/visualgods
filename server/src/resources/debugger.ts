@@ -4,6 +4,8 @@ import { MethodMessage, ResponseMessage } from '../types';
 import {
   ScriptSource, LineMapping, Breakpoint, ParsedScript,
   DebugPaused,
+  RuntimeRemoteObject,
+  RtPropertyDescriptor,
 } from './types';
 import { WebSocketConnection } from '../ws_server';
 import parseScript from './parse_script';
@@ -11,9 +13,11 @@ import { PROJECT_ROOT } from '../utils/env_vars';
 
 import Sort from './sort';
 
-export type History = Record<string, any>[];
-
 type ResultPromise = Promise<Record<string, any>>;
+
+interface Resolver extends Record<string, any> {
+  resolve: (result: Record<string, any>) => void;
+}
 
 const INIT_MESSAGES_JSON = `
 { "method": "Debugger.enable", "params": { "maxScriptsCacheSize": 100000000 } }
@@ -52,6 +56,8 @@ export default class Debugger {
   public close() {
     this.connection.close();
   }
+
+  public get history() { return this.historyRecords; }
 
   public get lastTask() { return this.lastTaskPromise; }
 
@@ -225,8 +231,7 @@ export default class Debugger {
   }
 
   // pause/resume handlers
-  private debuggingMessageHandler({ method, params }: MethodMessage) {
-    console.info('debuggingMessageHandler', { method, params }, this.msgId);
+  private async debuggingMessageHandler({ method, params }: MethodMessage) {
     if (method === 'Debugger.paused') {
       const { hitBreakpoints: [bpId = ''] = [], callFrames } = params as DebugPaused;
       const bpName = this.activeBreakpoints[bpId];
@@ -243,29 +248,95 @@ export default class Debugger {
                 .map(({ type, object: { objectId } }) => ({ type, objectId })),
             }));
 
-          objects.forEach(({ scopeObjects }) => {
-            scopeObjects.forEach(({ objectId }) => {
-              this.send({
-                method: 'Runtime.getProperties',
-                params: {
-                  objectId,
-                  ownProperties: false,
-                  accessorPropertiesOnly: false,
-                  generatePreview: true,
-                },
-              });
+          const stack = [];
+          await Promise.all(objects.map(async ({ functionName, scopeObjects: items }) => {
+            const scope = {};
+            stack.push({ functionName, scope });
+            const results = items.length
+              ? await Promise.all(items.map(({ objectId }) => this.resolveRemoteObject(objectId)))
+              : [];
+            results.forEach((s) => {
+              Object.assign(scope, s);
             });
-          });
-          console.log({ objects });
+          }));
+          this.historyRecords.push(JSON.stringify(stack));
+          console.log({ objects, stack });
         }
       }
-      // this.send({ method: 'Debugger.resume' });
+      this.send({ method: 'Debugger.resume' });
+      return;
     }
+    if (method === 'Debugger.resumed') return;
+    console.info('debuggingMessageHandler', { method, params }, this.msgId);
   }
 
-  private debuggingResponseHandler(response: ResponseMessage) {
-    console.info('debuggingResponseHandler', response, this.msgId);
+  private debuggingResponseHandler({ id, result }: ResponseMessage) {
+    const { debuggingResolvers } = this;
+    if (debuggingResolvers.has(id)) {
+      const { resolve } = debuggingResolvers.get(id);
+      debuggingResolvers.delete(id);
+      resolve(result);
+      return;
+    }
+    console.info('debugger:done', { id, result });
   }
+
+  private async resolveObjectValue(v: RuntimeRemoteObject): Promise<any> {
+    if (!v.objectId) return v.value;
+    const {
+      objectId,
+      type,
+      subtype,
+      preview: { properties },
+    } = v;
+
+    if (type !== 'object') {
+      return properties.map(({ value }) => value);
+    }
+
+    const obj = (await this.resolveRemoteObject(objectId)) as Record<string, any>;
+    if (subtype !== 'array') return obj;
+
+    const { length, ...list } = obj;
+    const items = new Array(length);
+    Object.keys(list).forEach((index) => {
+      items[+index] = list[index];
+    });
+    return items;
+  }
+
+  private async resolveRemoteObject(objectId: string): Promise<Record<string, any>> {
+    const items = (await this.runtimeGetProperties(objectId)).result as RtPropertyDescriptor[];
+    const entries = await Promise.all(items.map(async ({ name, value }) => (
+      value && value.type !== 'function' && name !== '__proto__'
+        ? [name, await this.resolveObjectValue(value)] as [string, any]
+        : null
+    )));
+
+    const obj = {};
+    entries.filter(x => x).forEach(([k, v]) => {
+      obj[k] = v;
+    });
+    return obj;
+  }
+
+  private runtimeGetProperties(objectId: string): ResultPromise {
+    return new Promise<Record<string, any>>((resolve) => {
+      const msgId = this.send({
+        method: 'Runtime.getProperties',
+        params: {
+          objectId,
+          ownProperties: true,
+          accessorPropertiesOnly: false,
+          generatePreview: true,
+        },
+      });
+
+      this.debuggingResolvers.set(msgId, { resolve, objectId });
+    });
+  }
+
+  private debuggingResolvers = new Map<number, Resolver>();
 
   // default handlers
   private defaultMessageHandler(message: MethodMessage) {
@@ -319,5 +390,5 @@ export default class Debugger {
 
   private taskResolver: (result: Record<string, any>) => void;
 
-  private historyRecords: History = [];
+  private historyRecords: string[];
 }

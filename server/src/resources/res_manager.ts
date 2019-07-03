@@ -51,6 +51,8 @@ export class ResManager {
     return { message: 'selected' };
   }
 
+  public getHistory(): string[] { return this.debugger ? [...this.debugger.history] : []; }
+
   public async inspect(id: number, { action = '', ...params }: Record<string, any>) {
     if (!this.selected) throw Error('No category selected');
     if (!action) throw Error('No action');
