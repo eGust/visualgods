@@ -37,7 +37,7 @@ function onConvertResponse({ id, result: { locations: [location] } }: ResponseMe
     lineNumber,
     columnNumber,
   };
-  console.log('getPossibleBreakpoints', location.scriptId, bp);
+  // console.log('getPossibleBreakpoints', location.scriptId, bp);
   resolve(bp);
 }
 
@@ -88,7 +88,7 @@ export default class BreakpointManager extends ScriptManager {
 
     const converted = await this.convertBreakpoints(bpLineMappings);
     breakpoints[subject] = converted;
-    console.log(converted);
+    // console.log(converted);
     return converted;
   }
 

@@ -18,7 +18,6 @@ export default class Debugger extends DebugMain {
   }
 
   public inspect(id: number, method: string, params: Record<string, any>) {
-    this.historyRecords = [];
     this.assignDebugHandlers();
     this.startTask({ id, method, params });
   }
@@ -26,8 +25,6 @@ export default class Debugger extends DebugMain {
   public close() {
     this.connection.close();
   }
-
-  public get history() { return this.historyRecords; }
 
   public constructor(invoker: WebSocketConnection, url: string) {
     super();
@@ -56,6 +53,4 @@ export default class Debugger extends DebugMain {
   }
 
   private invoker: WebSocketConnection;
-
-  private historyRecords: string[];
 }

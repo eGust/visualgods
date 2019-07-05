@@ -51,8 +51,6 @@ export class ResManager {
     return { message: 'selected' };
   }
 
-  public getHistory(): string[] { return this.debugger ? [...this.debugger.history] : []; }
-
   public async inspect(id: number, { action = '', ...params }: Record<string, any>) {
     if (!this.selected) throw Error('No category selected');
     if (!action) throw Error('No action');
@@ -72,6 +70,11 @@ export class ResManager {
   public async setService(val: WebSocketContext) {
     this.vs = val;
     this.debugger = new Debugger(this.vs.connection, this.debugWsUrl);
+    this.debugger.onStackPopulated = (breakpoint, stack) => {
+      const timestamp = Date.now();
+      // console.log(breakpoint, stack);
+      this.api.connection.send({ method: 'task.step', params: { breakpoint, stack, timestamp } });
+    };
     return this.debugger.lastTask;
   }
 

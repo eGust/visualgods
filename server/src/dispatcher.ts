@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import { promisified as phin } from 'phin';
 
 import createWsServer, { WebSocketServer, WebSocketContext } from './ws_server';
-import { MethodMessage } from './types';
+import { MethodMessage, AnyMessage } from './types';
 import { SERVICE_ROOT } from './utils/env_vars';
 import { ResManager, findAvailablePort, handleLaunchError } from './resources/res_manager';
 
@@ -109,16 +109,17 @@ export default class Dispatcher {
     console.log('vad service connected', result);
   }
 
-  private async serviceMessageHandler(context: WebSocketContext, message: MethodMessage) {
+  private async serviceMessageHandler(context: WebSocketContext, message: AnyMessage) {
     console.log('serviceMessageHandler', context.connection.id, message);
 
     const res = this.serviceResources.get(context.connection.id);
     if (!res) {
       console.log('not found serviceResources');
-      return;
     }
 
-    console.log(res.getHistory());
+    if (message.id && message.result) {
+      res.api.connection.send(message);
+    }
   }
 
   private apiResources = new Map<string, ResManager>();

@@ -15,3 +15,10 @@ export interface MethodMessage {
   method: string;
   params?: Record<string, any>;
 }
+
+export interface AnyMessage {
+  id?: number;
+  method?: string;
+  result?: Record<string, any>;
+  params?: Record<string, any>;
+}

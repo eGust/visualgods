@@ -40,7 +40,7 @@ function findHeapItemsOperations(scriptSrc: ScriptSource, lineMappings: LineMapp
       key = 'w';
     }
 
-    this[`heap@${scriptId}:${line}[${key}]`] = {
+    this[`items@${scriptId}:${line}[${key}]`] = {
       line: item.line,
       mappings: [item.mappings[0], item.mappings[item.mappings.length - 1]],
       url,

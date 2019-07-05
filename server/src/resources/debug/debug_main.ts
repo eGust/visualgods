@@ -35,7 +35,7 @@ export default class DebugMain extends BreakpointManager {
     this.responseHandler = this.objectResolver.handleResponse;
   }
 
-  protected onStackPopulated: (breakpoint: string, stack: StackFrame[]) => void = logStack;
+  public onStackPopulated: (breakpoint: string, stack: StackFrame[]) => void = logStack;
 
   private async emitStackPopulated(breakpoint: string, stack: StackFrame[]) {
     try {

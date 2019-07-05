@@ -22,17 +22,14 @@ export const findBreakpoints = (scripts: Record<string, ScriptSource>) => {
 };
 
 export const filterCallFrames = (name: string, callFrames: DebugCallFrame[]) => {
-  switch (name) {
-    case 'swap':
-      return callFrames.slice(0, 2);
-    case 'comparer': {
-      const sortIndex = callFrames.findIndex(({ functionName }) => functionName === 'sort');
-      return callFrames.slice(0, sortIndex);
-    }
-    default: {
-      if (name.startsWith('merge:') || name.startsWith('items@')) return [callFrames[0]];
-    }
+  if (name === 'comparer') {
+    const sortIndex = callFrames.findIndex(({ functionName }) => functionName === 'sort');
+    return callFrames.slice(0, sortIndex);
   }
+
+  if (name === 'swap') return callFrames.slice(0, 2);
+  if (name.startsWith('merge:') || name.startsWith('items@')) return [callFrames[0]];
+
   console.error('Unknown:', name);
   return null;
 };

@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import Koa from 'koa';
 
 import { isDev } from './utils/env_vars';
-import { ResponseMessage, MethodMessage } from './types';
+import { ResponseMessage, MethodMessage, AnyMessage } from './types';
 
 function noop() {}
 
@@ -29,7 +29,7 @@ export class WebSocketConnection extends TimestampId {
     this.connection.ping(noop);
   }
 
-  public send(message: MethodMessage) {
+  public send(message: AnyMessage | MethodMessage | ResponseMessage) {
     this.connection.send(JSON.stringify(message));
   }
 
@@ -72,7 +72,7 @@ export interface WebSocketContext {
 
 export type ConnectionHandler = (context: WebSocketContext, params?: Record<string, string>)
 => void;
-export type MessageHandler = (context: WebSocketContext, message: MethodMessage) => void;
+export type MessageHandler = (context: WebSocketContext, message: AnyMessage) => void;
 export type ErrorHandler = (context: WebSocketContext, error: Error) => void;
 
 const defaultConnectionHandler: ConnectionHandler = ({ connection: { id: cId }, server: { id: sId } }, params) => console.error(`[${params ? 'connected' : 'disconnected'}] ${sId}.${cId}`, params);
@@ -80,7 +80,7 @@ const defaultConnectionHandler: ConnectionHandler = ({ connection: { id: cId }, 
 const defaultMessageHandler: MessageHandler = (ctx, message) => {
   const { connection: { id: cId }, server: { id: sId } } = ctx;
   console.info(`[message] ${sId}.${cId}`, message);
-  ctx.connection.respond({ id: message.id, result: message.params });
+  ctx.connection.respond({ id: message.id, result: (message as MethodMessage).params });
 };
 
 const defaultErrorHandler: ErrorHandler = ({ connection: { id: cId }, server: { id: sId } }, error) => console.error(`[error] ${sId}.${cId}`, error);
