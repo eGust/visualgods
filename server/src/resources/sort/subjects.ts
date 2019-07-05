@@ -17,14 +17,12 @@ function findSubjects({ source, url, scriptId }: ScriptSource, lineMappings: Lin
 
     const { subject, line } = sub;
     const item = lineMappings.find(({ mappings }) => mappings[0].sourceLine === line);
-    if (item) {
-      this[subject] = {
-        line: item.line,
-        mappings: [item.mappings[0], item.mappings[item.mappings.length - 1]],
-        url,
-        scriptId,
-      };
-    }
+    this[subject] = {
+      line: item.line,
+      mappings: [item.mappings[0], item.mappings[item.mappings.length - 1]],
+      url,
+      scriptId,
+    };
   });
 }
 

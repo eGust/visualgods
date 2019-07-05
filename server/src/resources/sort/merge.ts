@@ -4,7 +4,7 @@ import { findAllSubStr, getLineMap } from '../helpers';
 function findMergeAssignments({ source, url, scriptId }: ScriptSource, lineMappings: LineMappings) {
   if (!url.endsWith('MergeSort.ts')) return;
 
-  const offsets = findAllSubStr(source, 'result[i]');
+  const offsets = [...findAllSubStr(source, 'result ='), ...findAllSubStr(source, 'result[')];
   if (!offsets.length) return;
 
   const offsetLineMap = getLineMap(offsets, source);

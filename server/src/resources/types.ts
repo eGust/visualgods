@@ -145,3 +145,20 @@ export interface RtPropertyDescriptor {
   wasThrown?: boolean;
   isOwn?: boolean;
 }
+
+export interface StackFrame {
+  functionName: string;
+  location: DebugLocation;
+  scope: Record<string, any>;
+}
+
+export type CallFramesFilter = (name: string, callFrames: DebugCallFrame[]) =>
+  DebugCallFrame[];
+
+export type BreakpointsFinder = (scripts: Record<string, ScriptSource>) =>
+  Record<string, LineMapping>;
+
+export interface DebuggerPlugin {
+  filterCallFrames: CallFramesFilter;
+  findBreakpoints: BreakpointsFinder;
+}

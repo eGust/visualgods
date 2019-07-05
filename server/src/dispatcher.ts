@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { promisified as phin } from 'phin';
 
 import createWsServer, { WebSocketServer, WebSocketContext } from './ws_server';
 import { MethodMessage } from './types';
@@ -47,24 +48,24 @@ export default class Dispatcher {
         return;
       }
 
-      const tsArgs = `--inspect=127.0.0.1:${port} -r ts-node/register src/main.ts`;
+      const tsArgs = `--inspect=127.0.0.1:${port} -r ts-node/register service/main.ts`;
       const args = `${tsArgs} ${this.listenPort} ${apiId}`.split(' ');
       const vs = spawn('node', args, LAUNCH_OPTIONS);
 
       vs.stdout.setEncoding('utf8');
       vs.stderr.setEncoding('utf8');
-      vs.stdout.on('data', (stdout) => {
-        console.log('vs.on[data]', stdout);
-      });
-      vs.stderr.on('data', (stderr) => {
+      vs.stdout.on('data', (stdout) => { console.log('vs.on[data]', stdout); });
+      vs.stderr.on('data', async (stderr) => {
         console.log({ stderr });
         if (this.apiResources.has(apiId)) return;
+        if (!/(ws:\S+)/.test(stderr)) return;
 
-        const m = stderr.match(/(ws:\S+)/);
-        console.info('ws', m && m[1]);
-        if (!m) return;
-
-        this.apiResources.set(apiId, new ResManager(context, port, m[1]));
+        const res = await phin({
+          url: `http://127.0.0.1:${port}/json`,
+          parse: 'json',
+        });
+        const wsUrl = res.body[0].webSocketDebuggerUrl as string;
+        this.apiResources.set(apiId, new ResManager(context, port, wsUrl));
       });
       console.info('launched', args, params);
     } catch (e) {

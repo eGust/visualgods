@@ -4,48 +4,49 @@ import { matchAllRegEx, getLineMap } from '../helpers';
 const RE_WRITE = /items\[.+?\]\s*=/g;
 const RE_READ = /=\s*items\[.+?\]/g;
 
-function findItemsOperations({ source, url, scriptId }: ScriptSource, lineMappings: LineMappings) {
+function findHeapItemsOperations(scriptSrc: ScriptSource, lineMappings: LineMappings) {
+  const { source, url, scriptId } = scriptSrc;
   const read = matchAllRegEx(source, RE_READ);
   const write = matchAllRegEx(source, RE_WRITE);
   const rws = [...read, ...write];
-  if (rws.length) {
-    const offsetLineMap = getLineMap(rws.sort((a, b) => a - b), source);
-    const lineBreakpointMap = new Map<number, Set<string>>();
+  if (!rws.length) return;
 
-    read.forEach((off) => {
-      const line = offsetLineMap.get(off);
-      lineBreakpointMap.set(line, new Set(['R']));
-    });
+  const offsetLineMap = getLineMap(rws.sort((a, b) => a - b), source);
+  const lineBreakpointMap = new Map<number, Set<string>>();
 
-    write.forEach((off) => {
-      const line = offsetLineMap.get(off);
-      const s = lineBreakpointMap.get(line);
-      if (s) {
-        s.add('W');
-      } else {
-        lineBreakpointMap.set(line, new Set(['W']));
-      }
-    });
+  read.forEach((off) => {
+    const line = offsetLineMap.get(off);
+    lineBreakpointMap.set(line, new Set(['R']));
+  });
 
-    Array.from(lineBreakpointMap.entries()).sort(([a], [b]) => a - b).forEach(([line, s]) => {
-      const item = lineMappings.find(({ mappings }) => mappings[0].sourceLine === line);
-      if (!item) return;
+  write.forEach((off) => {
+    const line = offsetLineMap.get(off);
+    const s = lineBreakpointMap.get(line);
+    if (s) {
+      s.add('W');
+    } else {
+      lineBreakpointMap.set(line, new Set(['W']));
+    }
+  });
 
-      let key: string;
-      if (s.has('R')) {
-        key = s.has('W') ? 'rw' : 'r';
-      } else {
-        key = 'w';
-      }
+  [...lineBreakpointMap.entries()].sort(([a], [b]) => a - b).forEach(([line, s]) => {
+    const item = lineMappings.find(({ mappings }) => mappings[0].sourceLine === line);
+    if (!item) return;
 
-      this[`items@${scriptId}:${line}[${key}]`] = {
-        line: item.line,
-        mappings: [item.mappings[0], item.mappings[item.mappings.length - 1]],
-        url,
-        scriptId,
-      };
-    });
-  }
+    let key: string;
+    if (s.has('R')) {
+      key = s.has('W') ? 'rw' : 'r';
+    } else {
+      key = 'w';
+    }
+
+    this[`heap@${scriptId}:${line}[${key}]`] = {
+      line: item.line,
+      mappings: [item.mappings[0], item.mappings[item.mappings.length - 1]],
+      url,
+      scriptId,
+    };
+  });
 }
 
-export default findItemsOperations;
+export default findHeapItemsOperations;

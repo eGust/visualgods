@@ -1,7 +1,7 @@
 import { createServer } from 'net';
 
 import { WebSocketContext } from '../ws_server';
-import Debugger from './debugger';
+import Debugger from './debug/index';
 
 const MIN_PORT = 9527;
 const MAX_PORT = 29_527;

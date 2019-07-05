@@ -2,7 +2,7 @@ import { decode as decodeVlq } from 'vlq';
 
 import {
   ParsedScript, SourceMap, MappingItem, ScriptSource,
-} from './types';
+} from '../types';
 
 const toLineObj = ([col, indexSource, sourceLine, sourceCol, indexName]: number[]) => ({
   col,

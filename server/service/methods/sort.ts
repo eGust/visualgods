@@ -6,8 +6,8 @@ import Sort, {
   QuickSort,
   ShellSort,
   SelectionSort,
-} from '../../../algorithms/sorting/index';
-import { Comparer } from '../../../utils/index';
+} from '../../../lib/algorithms/sorting/index';
+import { Comparer } from '../../../lib/utils/index';
 import { NumberItem } from '../types';
 
 const comparer: Comparer<NumberItem> = (a, b) => {
