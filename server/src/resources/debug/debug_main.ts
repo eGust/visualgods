@@ -57,7 +57,7 @@ export default class DebugMain extends BreakpointManager {
         const stack: StackFrame[] = [];
         await Promise.all(frames.map(async ({ functionName, location, scopeObjects: items }) => {
           const scope: Record<string, any> = {};
-          stack.push({ functionName, location, scope });
+          stack.push({ functionName, location: this.getSourceLocation(location), scope });
           return Promise.all(items.map(async ({ objectId }) => {
             const s = await this.objectResolver.resolveRemoteObject(objectId);
             Object.assign(scope, s);

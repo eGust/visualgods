@@ -42,9 +42,14 @@ function onConvertResponse({ id, result: { locations: [location] } }: ResponseMe
 }
 
 export default class BreakpointManager extends ScriptManager {
+  protected get currentBreakpoints() {
+    return Object.entries(this.sourceBreakpoints[this.pluginCategory])
+      .map(([name, bp]) => [name, { ...bp, mappings: undefined }]);
+  }
+
   protected async clearBreakpoints() {
     const { activeBreakpoints } = this;
-    console.log('clearBreakpoints', activeBreakpoints);
+    // console.log('clearBreakpoints', activeBreakpoints);
     if (!Object.keys(activeBreakpoints).length) return;
 
     const resolves: Record<string, () => void> = {};
@@ -74,16 +79,17 @@ export default class BreakpointManager extends ScriptManager {
       breakpoints[breakpointId] = name;
     });
     this.activeBreakpoints = breakpoints;
-    console.log('breakpoints set', { breakpoints });
+    // console.log('breakpoints set', { breakpoints });
   }
 
   private async findBreakpoints(subject: string): Promise<Breakpoint[]> {
-    const { breakpoints } = this;
+    const { breakpoints, sourceBreakpoints } = this;
     const bps = breakpoints[subject];
     if (bps) return bps;
 
-    const bpLineMappings = this.plugin.findBreakpoints(this.scripts);
+    const bpLineMappings = sourceBreakpoints[subject] || this.plugin.findBreakpoints(this.scripts);
     console.log('findBreakpoints', bpLineMappings);
+    sourceBreakpoints[subject] = bpLineMappings;
     if (!bpLineMappings) return null;
 
     const converted = await this.convertBreakpoints(bpLineMappings);
@@ -111,4 +117,10 @@ export default class BreakpointManager extends ScriptManager {
         })),
     );
   }
+
+  protected sourceBreakpoints: Record<string, Record<string, LineMapping>> = {};
+
+  protected breakpoints: Record<string, Breakpoint[]> = {};
+
+  protected activeBreakpoints: Record<string, string> = {};
 }

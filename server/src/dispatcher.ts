@@ -51,22 +51,12 @@ export default class Dispatcher {
       const tsArgs = `--inspect=127.0.0.1:${port} -r ts-node/register service/main.ts`;
       const args = `${tsArgs} ${this.listenPort} ${apiId}`.split(' ');
       const vs = spawn('node', args, LAUNCH_OPTIONS);
+      this.apiResources.set(apiId, new ResManager(context, port));
 
       vs.stdout.setEncoding('utf8');
       vs.stderr.setEncoding('utf8');
-      vs.stdout.on('data', (stdout) => { console.log('vs.on[data]', stdout); });
-      vs.stderr.on('data', async (stderr) => {
-        console.log({ stderr });
-        if (this.apiResources.has(apiId)) return;
-        if (!/(ws:\S+)/.test(stderr)) return;
-
-        const res = await phin({
-          url: `http://127.0.0.1:${port}/json`,
-          parse: 'json',
-        });
-        const wsUrl = res.body[0].webSocketDebuggerUrl as string;
-        this.apiResources.set(apiId, new ResManager(context, port, wsUrl));
-      });
+      vs.stdout.on('data', (stdout) => { console.log({ stdout }); });
+      vs.stderr.on('data', (stderr) => { console.log({ stderr }); });
       console.info('launched', args, params);
     } catch (e) {
       handleLaunchError(context, e);
@@ -84,7 +74,7 @@ export default class Dispatcher {
       const method = res[message.method] as ResMethod;
       if (method) {
         const result = await method(id, params);
-        console.info('apiMessageHandler', { id, result });
+        // console.info('apiMessageHandler', { id, result });
         res.api.connection.respond({ id, result });
       } else {
         console.warn('apiMessageHandler:no_method', message);
@@ -96,15 +86,15 @@ export default class Dispatcher {
   }
 
   private async serviceConnectionHandler(context: WebSocketContext, params?: Record<string, any>) {
-    if (!params) {
-      // clean up
-      return;
-    }
+    if (!params) return; // TODO: clean up
 
     console.log('serverConnectionHandler', params);
     const res = this.apiResources.get(params.token);
     this.serviceResources.set(context.connection.id, res);
-    const result = await res.setService(context);
+
+    const response = await phin({ url: `http://127.0.0.1:${res.port}/json`, parse: 'json' });
+    const result = await res.setService(context, response.body[0].webSocketDebuggerUrl);
+
     res.api.connection.send({ method: 'ready', params: result });
     console.log('vad service connected', result);
   }
@@ -115,10 +105,16 @@ export default class Dispatcher {
     const res = this.serviceResources.get(context.connection.id);
     if (!res) {
       console.log('not found serviceResources');
+      return;
     }
 
-    if (message.id && message.result) {
+    if (message.method === 'categories') {
       res.api.connection.send(message);
+      return;
+    }
+
+    if (message.id && message.result && message.result.task) {
+      res.api.connection.send({ method: 'task.finished', params: message.result });
     }
   }
 

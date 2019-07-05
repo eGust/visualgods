@@ -15,6 +15,14 @@ function main() {
   };
 
   ws.on('ping', ws.pong.bind(ws));
+  ws.on('open', () => {
+    const categories = {};
+    Object.entries(methodHandlers).forEach(([c, h]) => {
+      categories[c] = Object.keys(h).sort();
+    });
+    ws.send(JSON.stringify({ method: 'categories', params: { categories } }));
+  });
+
   ws.on('message', async (data) => {
     console.log(data);
     try {

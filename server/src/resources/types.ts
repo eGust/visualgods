@@ -153,10 +153,10 @@ export interface StackFrame {
 }
 
 export type CallFramesFilter = (name: string, callFrames: DebugCallFrame[]) =>
-  DebugCallFrame[];
+DebugCallFrame[];
 
 export type BreakpointsFinder = (scripts: Record<string, ScriptSource>) =>
-  Record<string, LineMapping>;
+Record<string, LineMapping>;
 
 export interface DebuggerPlugin {
   filterCallFrames: CallFramesFilter;

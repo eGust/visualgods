@@ -39,23 +39,22 @@ export class ResManager {
 
   public readonly port: number;
 
-  public get selected() { return this.category; }
+  public get selectedCategory() { return this.debugger.category; }
 
   public async select(_id: number, { category = null }) {
-    if (this.category === category) {
+    if (category === this.selectedCategory) {
       return { message: 'same' };
     }
 
-    await this.debugger.selectCategory(category);
-    this.category = category;
-    return { message: 'selected' };
+    const { breakpoints, scripts } = await this.debugger.selectCategory(category);
+    return { message: 'selected', breakpoints, scripts };
   }
 
   public async inspect(id: number, { action = '', ...params }: Record<string, any>) {
-    if (!this.selected) throw Error('No category selected');
+    if (!this.selectedCategory) throw Error('No category selected');
     if (!action) throw Error('No action');
 
-    this.debugger.inspect(id, `${this.selected}.${action}`, params);
+    this.debugger.inspect(id, `${this.selectedCategory}.${action}`, params);
     return { message: 'task started' };
   }
 
@@ -67,9 +66,9 @@ export class ResManager {
 
   public get service() { return this.vs; }
 
-  public async setService(val: WebSocketContext) {
+  public async setService(val: WebSocketContext, debugWsUrl: string) {
     this.vs = val;
-    this.debugger = new Debugger(this.vs.connection, this.debugWsUrl);
+    this.debugger = new Debugger(this.vs.connection, debugWsUrl);
     this.debugger.onStackPopulated = (breakpoint, stack) => {
       const timestamp = Date.now();
       // console.log(breakpoint, stack);
@@ -78,11 +77,10 @@ export class ResManager {
     return this.debugger.lastTask;
   }
 
-  public constructor(api: WebSocketContext, port: number, debugWsUrl: string) {
+  public constructor(api: WebSocketContext, port: number) {
     usedPort.add(port);
     this.api = api;
     this.port = port;
-    this.debugWsUrl = debugWsUrl;
 
     this.inspect = this.inspect.bind(this);
     this.select = this.select.bind(this);
@@ -90,9 +88,5 @@ export class ResManager {
 
   private vs: WebSocketContext;
 
-  private debugWsUrl: string;
-
   private debugger: Debugger;
-
-  private category: string = null;
 }
