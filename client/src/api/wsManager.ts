@@ -1,18 +1,7 @@
 import { IS_DEV } from '../env';
+import { SourceScript, Message } from '../types';
 
 const messageLog = (message: Record<string, unknown>): void => console.log(message);
-
-interface Message {
-  method: string;
-  id?: number;
-  params?: Record<string, unknown>;
-}
-
-interface SourceScript {
-  file: string;
-  source: string;
-  lines: string[];
-}
 
 interface InitRecord extends Record<string, unknown> {
   categories?: { categories: Record<string, string[]> };

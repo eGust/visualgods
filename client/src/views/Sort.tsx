@@ -2,25 +2,34 @@ import React from 'react';
 
 import WsContext from './WsContext';
 import WsManager from '../api/wsManager';
+import { NumberItem, Breakpoint } from '../types';
+import { generateRandomNumbers } from '../utils/sort';
 
-interface Breakpoint {
-  scriptId: string;
-  line: number;
-}
+import ArrayEditor from '../components/ArrayEditor';
+import '../styles/sort.sass';
 
 interface BreakpointsResult extends Record<string, unknown> {
   breakpoints: Record<string, { id: string; line: number }>;
 }
 
+interface SortState {
+  ready: boolean;
+  items: NumberItem[];
+}
+
 class Sort extends React.PureComponent {
   public static contextType = WsContext;
 
-  public state = { ready: false }
+  public state: SortState = {
+    ready: false,
+    items: generateRandomNumbers(24).map((value, index) => ({ key: (index + 1).toString(), value })),
+  }
 
   protected breakpoints: Record<string, Breakpoint> = {};
 
   public constructor(props: {}, context: {}) {
     super(props, context);
+    this.updateItems = this.updateItems.bind(this);
     this.fetchBreakpoints();
   }
 
@@ -40,10 +49,17 @@ class Sort extends React.PureComponent {
     console.log(wsManager);
   }
 
+  private updateItems(numbers: number[]) {
+    this.setState({ items: numbers.map((value, index) => ({ value, key: index.toString() })) });
+  }
+
   public render() {
-    const { ready } = this.state;
+    const { state: { ready, items }, updateItems } = this;
+    const numbers = items.map(({ value }) => value);
     return ready ? (
-      <div>Ready</div>
+      <div className="sort">
+        <ArrayEditor {...{ numbers, updateItems }} />
+      </div>
     ) : (
       <div>Loading...</div>
     );

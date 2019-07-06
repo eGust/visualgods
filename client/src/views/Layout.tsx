@@ -43,13 +43,15 @@ class Layout extends React.PureComponent {
     return wsManager ? (
       <div>
         <header>
-          <select onChange={this.onSelected} value={current}>
-            {
-              Object.keys(views).map((name) => (
-                <option key={name} value={name}>{name}</option>
-              ))
-            }
-          </select>
+          <div className="select">
+            <select onChange={this.onSelected} value={current}>
+              {
+                Object.keys(views).map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))
+              }
+            </select>
+          </div>
         </header>
         <main>
           <WsContext.Provider value={wsManager}>

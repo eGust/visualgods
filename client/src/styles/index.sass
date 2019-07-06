@@ -47,7 +47,7 @@ header
   display: flex
   flex-direction: row
   align-items: center
-  select
+  .select
     min-width: 20ch
 
 main
@@ -60,3 +60,19 @@ main > div
   flex: 1
   margin: 8px
   position: relative
+
+.control > .select, .select > select
+  width: 100%
+
+.auto-fill
+  flex: 1
+
+.auto-fill-column
+  flex: 1
+  display: flex !important
+  flex-direction: column
+
+.auto-fill-row
+  flex: 1
+  display: flex !important
+  flex-direction: row
