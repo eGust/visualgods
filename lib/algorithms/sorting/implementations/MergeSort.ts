@@ -1,6 +1,7 @@
 import Sort, { Comparer } from '../Sort';
 
-function merge<T>(a: T[], b: T[], compare: Comparer<T>) {
+// eslint-disable-next-line arrow-parens
+const merge = <T>(a: T[], b: T[], compare: Comparer<T>) => {
   const sizeA = a.length;
   const sizeB = b.length;
   const sizeResult = sizeA + sizeB;
@@ -21,9 +22,10 @@ function merge<T>(a: T[], b: T[], compare: Comparer<T>) {
     }
   }
   return result;
-}
+};
 
-function mergeSort<T>(items: T[], compare: Comparer<T>, start = 0, end = items.length): T[] {
+// eslint-disable-next-line arrow-parens
+const mergeSort = <T>(items: T[], compare: Comparer<T>, start = 0, end = items.length): T[] => {
   const size = end - start;
   if (size <= 1) return items.slice(start, end);
 
@@ -34,7 +36,7 @@ function mergeSort<T>(items: T[], compare: Comparer<T>, start = 0, end = items.l
     mergeSort(items, compare, mid, end),
     compare,
   );
-}
+};
 
 class MergeSort<T> extends Sort<T> {
   public sort() {

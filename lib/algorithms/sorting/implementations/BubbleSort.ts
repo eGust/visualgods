@@ -1,6 +1,7 @@
 import Sort, { swap, Comparer } from '../Sort';
 
-function bubbleSort<T>(items: T[], compare: Comparer<T>) {
+// eslint-disable-next-line arrow-parens
+const bubbleSort = <T>(items: T[], compare: Comparer<T>) => {
   const n = items.length;
   let swapped: boolean;
   do {
@@ -12,7 +13,7 @@ function bubbleSort<T>(items: T[], compare: Comparer<T>) {
       }
     }
   } while (swapped);
-}
+};
 
 class BubbleSort<T> extends Sort<T> {
   public sort() {

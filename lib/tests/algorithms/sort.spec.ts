@@ -10,7 +10,7 @@ const {
   ...Sorters
 } = sorters;
 
-function generateRandomNumbers({ count = 50, low = 100, high = 999 }) {
+const generateRandomNumbers = ({ count = 50, low = 100, high = 999 }) => {
   const numbers = new Array<number>(count);
   const size = (high - low) + 1;
   for (let i = 0; i < count; i += 1) {
@@ -18,7 +18,7 @@ function generateRandomNumbers({ count = 50, low = 100, high = 999 }) {
     numbers[i] = low + (Math.random() * size | 0);
   }
   return numbers;
-}
+};
 
 const TIMES = 2;
 const RANGE = {
@@ -27,7 +27,7 @@ const RANGE = {
   high: (+env.TEST_SAMPLE_RANGE_HIGH) || 999,
 };
 
-function generateTest(index: number) {
+const generateTest = (index: number) => {
   describe(`Sort - round ${index + 1}`, () => {
     const rawNumbers = generateRandomNumbers(RANGE);
     const sorted = [...rawNumbers].sort(defaultCompare);
@@ -40,6 +40,6 @@ function generateTest(index: number) {
       });
     });
   });
-}
+};
 
 times(generateTest)((+env.TEST_TIMES) || TIMES);
