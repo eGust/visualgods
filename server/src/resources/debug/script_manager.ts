@@ -35,6 +35,12 @@ export class ScriptManager extends DebugBase {
     this.pluginCategory = category;
   }
 
+  protected getSourceLocationAsync(location: DebugLocation): Promise<DebugLocation> {
+    return new Promise<DebugLocation>((resolve) => {
+      resolve(this.getSourceLocation(location));
+    });
+  }
+
   protected getSourceLocation(location: DebugLocation): DebugLocation {
     const { scriptId, lineNumber, columnNumber } = location;
     const cacheKey = [scriptId, lineNumber, columnNumber].join(':');

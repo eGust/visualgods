@@ -15,19 +15,19 @@ interface ConvertResolver {
   resolve: (value: Breakpoint) => void;
 }
 
-const onClearResponse = ({ id }: ResponseMessage): void => {
+function onClearResponse({ id }: ResponseMessage): void {
   const resolve: () => void = this[id];
   delete this[id];
   resolve();
-};
+}
 
-const onSetupResponse = ({ id, result: { breakpointId } }: ResponseMessage): void => {
+function onSetupResponse({ id, result: { breakpointId } }: ResponseMessage): void {
   const { name, resolve }: SetupResolver = this[id];
   delete this[id];
   resolve({ name, breakpointId: breakpointId as string });
-};
+}
 
-const onConvertResponse = ({ id, result: { locations } }: ResponseMessage): void => {
+function onConvertResponse({ id, result: { locations } }: ResponseMessage): void {
   const [location] = locations as DebugLocation[];
   const { name, url, resolve }: ConvertResolver = this[id];
   delete this[id];
@@ -40,7 +40,7 @@ const onConvertResponse = ({ id, result: { locations } }: ResponseMessage): void
   };
   // console.log('getPossibleBreakpoints', location.scriptId, bp);
   resolve(bp);
-};
+}
 
 export default class BreakpointManager extends ScriptManager {
   protected get currentBreakpoints(): [string, LineMapping][] {

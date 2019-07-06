@@ -2,7 +2,7 @@ import { ScriptSource, LineMappings } from '../types';
 import { generateSubjectFinder } from '../helpers';
 
 const subjectFinders = `
-swap: function swap<T>
+swap: const swap
 comparer: const comparer
 `.trim().split('\n')
   .map((src) => {

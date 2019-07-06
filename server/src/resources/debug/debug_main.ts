@@ -40,7 +40,7 @@ export default class DebugMain extends BreakpointManager {
 
   private async emitStackPopulated(breakpoint: string, stack: StackFrame[]): Promise<void> {
     try {
-      this.onStackPopulated(breakpoint, stack);
+      setImmediate(() => this.onStackPopulated(breakpoint, stack));
     } catch (e) {
       console.error();
     }
@@ -56,9 +56,11 @@ export default class DebugMain extends BreakpointManager {
         if (!frames) return;
 
         const stack: StackFrame[] = [];
-        await Promise.all(frames.map(async ({ functionName, location, scopeObjects: items }) => {
+        await Promise.all(frames.map(async ({ functionName, location: jsLocation, scopeObjects: items }) => {
           const scope: Record<string, unknown> = {};
-          stack.push({ functionName, location: this.getSourceLocation(location), scope });
+          this.getSourceLocationAsync(jsLocation).then((location) => {
+            stack.push({ functionName, location, scope });
+          });
           return Promise.all(items.map(async ({ objectId }) => {
             const s = await this.objectResolver.resolveRemoteObject(objectId as string);
             Object.assign(scope, s);
