@@ -8,9 +8,9 @@ import { createSelector } from 'reselect';
 import { storiesOf } from '@storybook/react';
 import { number, select } from '@storybook/addon-knobs';
 
-import { ValueRecord, ItemStatus, ItemHighlight } from '../../src/components/basic/common_types';
-import ValueBox from '../../src/components/basic/ValueBox';
-import NumberBar from '../../src/components/basic/NumberBar';
+import { ValueRecord, ItemStatus, ItemHighlight } from '../../src/components/common_types';
+import ValueBox from '../../src/components/ValueBox';
+import NumberBar from '../../src/components/NumberBar';
 import QuickSort from '../../../lib/algorithms/sorting/implementations/QuickSort';
 
 interface NumberItem {

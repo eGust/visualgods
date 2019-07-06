@@ -14,7 +14,7 @@
     "typescript": "3.5.1"
   },
   "scripts": {
-    "s": "cross-env BROWSER=none react-scripts start",
+    "dev": "cross-env BROWSER=none react-scripts start",
     "sb": "start-storybook -p 6006 --ci",
     "start": "react-scripts start",
     "build": "react-scripts build",

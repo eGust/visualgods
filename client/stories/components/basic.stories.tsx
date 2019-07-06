@@ -5,9 +5,9 @@ import { number, select } from '@storybook/addon-knobs';
 // import { action } from '@storybook/addon-actions';
 // import { linkTo } from '@storybook/addon-links';
 
-import ValueBox from '../../src/components/basic/ValueBox';
-import NumberBar from '../../src/components/basic/NumberBar';
-import { ItemStatus, ItemHighlight } from '../../src/components/basic/common_types';
+import ValueBox from '../../src/components/ValueBox';
+import NumberBar from '../../src/components/NumberBar';
+import { ItemStatus, ItemHighlight } from '../../src/components/common_types';
 
 storiesOf('Components.Basic', module)
   .add('ValueBox', () => (
