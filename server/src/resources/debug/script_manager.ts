@@ -14,7 +14,6 @@ const INIT_MESSAGES_JSON = `
 { "method": "Debugger.enable", "params": { "maxScriptsCacheSize": 100000000 } }
 { "method": "Debugger.setPauseOnExceptions", "params": { "state": "none" } }
 { "method": "Debugger.setAsyncCallStackDepth", "params": { "maxDepth": 32 } }
-{ "method": "Debugger.setBlackboxPatterns", "params": { "patterns": [] } }
 { "method": "Debugger.setBreakpointsActive", "params":{ "active": true } }
 { "method": "Runtime.enable" }
 `.trim();
@@ -96,7 +95,11 @@ export class ScriptManager extends DebugBase {
       this.send(initMsg);
     } else {
       console.log('init:done', id, this.scripts);
-      this.resolveTask({ categories: Object.keys(AVAILABLE_PLUGINS) });
+      const scripts = {};
+      Object.values(this.scripts).forEach(({ scriptId, source, file }) => {
+        scripts[scriptId] = { source, file };
+      });
+      this.resolveTask({ categories: Object.keys(AVAILABLE_PLUGINS), scripts });
       this.reset();
     }
   }

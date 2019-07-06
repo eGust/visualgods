@@ -13,18 +13,14 @@ export default class Debugger extends DebugMain {
       await this.clearBreakpoints();
       await this.setupBreakpoints(category);
 
-      const scripts = {};
       const breakpoints = {};
-      Object.values(this.scripts).forEach(({ scriptId, source, file }) => {
-        scripts[scriptId] = { source, file };
-      });
       Object.entries(this.sourceBreakpoints[this.pluginCategory]).forEach(([name, bp]) => {
         breakpoints[name] = {
           line: bp.line,
           id: bp.scriptId,
         };
       });
-      return { scripts, breakpoints };
+      return { breakpoints };
     } finally {
       this.responseHandler = oldResponseHandler;
     }

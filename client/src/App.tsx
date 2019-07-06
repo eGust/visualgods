@@ -1,14 +1,10 @@
 import React from 'react';
 
+import Layout from './views/Layout';
+
 const App: React.FC = () => (
   <div className="App">
-    <header className="App-header">
-      <p>
-        Edit
-        <code>src/App.tsx</code>
-        and save to reload.
-      </p>
-    </header>
+    <Layout />
   </div>
 );
 
