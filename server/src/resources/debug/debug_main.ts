@@ -5,6 +5,7 @@ import {
 import BreakpointManager from './bp_manager';
 import RemoteObjectResolver from './remote_obj';
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const filterFramesByName = (plugin: DebuggerPlugin, frames: DebugCallFrame[], name: string) => {
   const callFrames = plugin.filterCallFrames(name, frames);
   if (!(callFrames && callFrames.length)) return null;
@@ -20,7 +21,7 @@ const filterFramesByName = (plugin: DebuggerPlugin, frames: DebugCallFrame[], na
     .filter(({ scopeObjects }) => scopeObjects.length);
 };
 
-const logStack = (breakpoint: string, stack: StackFrame[]) => {
+const logStack = (breakpoint: string, stack: StackFrame[]): void => {
   console.log(breakpoint, stack);
 };
 
@@ -30,14 +31,14 @@ export default class DebugMain extends BreakpointManager {
     this.objectResolver = new RemoteObjectResolver(this.send);
   }
 
-  protected assignDebugHandlers() {
+  protected assignDebugHandlers(): void {
     this.messageHandler = this.debugMessageHandler;
     this.responseHandler = this.objectResolver.handleResponse;
   }
 
   public onStackPopulated: (breakpoint: string, stack: StackFrame[]) => void = logStack;
 
-  private async emitStackPopulated(breakpoint: string, stack: StackFrame[]) {
+  private async emitStackPopulated(breakpoint: string, stack: StackFrame[]): Promise<void> {
     try {
       this.onStackPopulated(breakpoint, stack);
     } catch (e) {
@@ -46,7 +47,7 @@ export default class DebugMain extends BreakpointManager {
   }
 
   // pause/resume handlers
-  private async debugMessageHandler({ method, params }: MethodMessage) {
+  private async debugMessageHandler({ method, params }: MethodMessage): Promise<void> {
     if (method === 'Debugger.paused') {
       const { hitBreakpoints: [bpId = ''] = [], callFrames } = params as DebugPaused;
       const breakpoint = this.activeBreakpoints[bpId];
@@ -56,10 +57,10 @@ export default class DebugMain extends BreakpointManager {
 
         const stack: StackFrame[] = [];
         await Promise.all(frames.map(async ({ functionName, location, scopeObjects: items }) => {
-          const scope: Record<string, any> = {};
+          const scope: Record<string, unknown> = {};
           stack.push({ functionName, location: this.getSourceLocation(location), scope });
           return Promise.all(items.map(async ({ objectId }) => {
-            const s = await this.objectResolver.resolveRemoteObject(objectId);
+            const s = await this.objectResolver.resolveRemoteObject(objectId as string);
             Object.assign(scope, s);
           }));
         }));

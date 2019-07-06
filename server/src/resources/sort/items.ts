@@ -4,7 +4,7 @@ import { matchAllRegEx, getLineMap } from '../helpers';
 const RE_WRITE = /items\[.+?\]\s*=/g;
 const RE_READ = /=\s*items\[.+?\]/g;
 
-function findHeapItemsOperations(scriptSrc: ScriptSource, lineMappings: LineMappings) {
+function findHeapItemsOperations(scriptSrc: ScriptSource, lineMappings: LineMappings): void {
   const { source, url, scriptId } = scriptSrc;
   const read = matchAllRegEx(source, RE_READ);
   const write = matchAllRegEx(source, RE_WRITE);

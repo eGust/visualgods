@@ -20,7 +20,7 @@ const partition = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>):
 };
 
 // eslint-disable-next-line arrow-parens
-const quickSort = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>) => {
+const quickSort = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>): void => {
   if (lo < hi) {
     const p = partition(items, lo, hi, compare);
     quickSort(items, lo, p, compare);
@@ -29,7 +29,7 @@ const quickSort = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>) 
 };
 
 class QuickSort<T> extends Sort<T> {
-  public sort() {
+  public sort(): void {
     const { items, compare } = this;
     quickSort(items, 0, items.length - 1, compare);
   }

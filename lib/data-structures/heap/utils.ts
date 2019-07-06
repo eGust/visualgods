@@ -1,17 +1,12 @@
 import { swap, Comparer, defaultCompare } from '../../utils/index';
 
 // eslint-disable-next-line no-bitwise
-export const parentOf = (n: number) => (n - 1) / 2 | 0;
-export const leftChildOf = (n: number) => n * 2 + 1;
-export const rightChildOf = (n: number) => (n + 1) * 2;
+export const parentOf = (n: number): number => (n - 1) / 2 | 0;
+export const leftChildOf = (n: number): number => n * 2 + 1;
+export const rightChildOf = (n: number): number => (n + 1) * 2;
 
 // eslint-disable-next-line arrow-parens
-export const siftDown = <T>(
-  list: T[],
-  start: number,
-  end: number,
-  compare: Comparer<T> = defaultCompare,
-) => {
+export const siftDown = <T>(list: T[], start: number, end: number, compare: Comparer<T> = defaultCompare): void => {
   let parent = start;
   let child = leftChildOf(parent);
   const last = end - 1;
@@ -29,7 +24,7 @@ export const siftDown = <T>(
 };
 
 // eslint-disable-next-line arrow-parens
-export const heapifyDown = <T>(list: T[], comparer: Comparer<T> = defaultCompare) => {
+export const heapifyDown = <T>(list: T[], comparer: Comparer<T> = defaultCompare): void => {
   const size = list.length;
   for (let i = parentOf(size - 1); i >= 0; i -= 1) {
     siftDown(list, i, size, comparer);
@@ -37,12 +32,7 @@ export const heapifyDown = <T>(list: T[], comparer: Comparer<T> = defaultCompare
 };
 
 // eslint-disable-next-line arrow-parens
-export const siftUp = <T>(
-  list: T[],
-  start: number,
-  end: number,
-  compare: Comparer<T> = defaultCompare,
-) => {
+export const siftUp = <T>(list: T[], start: number, end: number, compare: Comparer<T> = defaultCompare): void => {
   for (let child = end - 1; child > start;) {
     const parent = parentOf(child);
     if (compare(list[parent], list[child]) >= 0) return;
@@ -53,7 +43,7 @@ export const siftUp = <T>(
 };
 
 // eslint-disable-next-line arrow-parens
-export const heapifyUp = <T>(list: T[], comparer: Comparer<T> = defaultCompare) => {
+export const heapifyUp = <T>(list: T[], comparer: Comparer<T> = defaultCompare): void => {
   const size = list.length;
   for (let i = 2; i <= size; i += 1) {
     siftUp(list, 0, i, comparer);

@@ -10,8 +10,8 @@ const {
   ...Sorters
 } = sorters;
 
-const generateRandomNumbers = ({ count = 50, low = 100, high = 999 }) => {
-  const numbers = new Array<number>(count);
+const generateRandomNumbers = ({ count = 50, low = 100, high = 999 }): number[] => {
+  const numbers: number[] = [];
   const size = (high - low) + 1;
   for (let i = 0; i < count; i += 1) {
     // eslint-disable-next-line no-bitwise
@@ -27,7 +27,7 @@ const RANGE = {
   high: (+env.TEST_SAMPLE_RANGE_HIGH) || 999,
 };
 
-const generateTest = (index: number) => {
+const generateTest = (index: number): void => {
   describe(`Sort - round ${index + 1}`, () => {
     const rawNumbers = generateRandomNumbers(RANGE);
     const sorted = [...rawNumbers].sort(defaultCompare);

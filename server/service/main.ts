@@ -8,9 +8,9 @@ const [port, token] = argv.slice(2);
 const wsUrl = `ws://127.0.0.1:${port}/visualgods/${token}`;
 console.log(wsUrl);
 
-function main() {
+const startService = (): void => {
   const ws = new WebSocket(wsUrl);
-  const respond = (response: ResponseMessage) => {
+  const respond = (response: ResponseMessage): void => {
     ws.send(JSON.stringify(response));
   };
 
@@ -41,6 +41,6 @@ function main() {
       console.log('error', e);
     }
   });
-}
+};
 
-setTimeout(main, 1);
+setTimeout(startService, 1);

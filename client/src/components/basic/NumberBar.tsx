@@ -30,7 +30,7 @@ const Bar = styled.div<BarProps>`
   margin: 3px 5px;
 `;
 
-function NumberBar(props: ValueRecord<number>) {
+const NumberBar = (props: ValueRecord<number>) => {
   // const style = useSpring({ opacity: 1, from: { opacity: 0 } });
   const { value, status } = props;
   return (
@@ -39,6 +39,6 @@ function NumberBar(props: ValueRecord<number>) {
       <Bar className={`${status}-status`.toLowerCase()} size={value * 5} />
     </Container>
   );
-}
+};
 
 export default NumberBar;

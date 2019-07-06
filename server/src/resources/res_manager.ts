@@ -7,41 +7,39 @@ const MIN_PORT = 9527;
 const MAX_PORT = 29_527;
 const usedPort = new Set<number>();
 
-function checkPortAvailable(port: number) {
-  return new Promise<boolean>((rsv) => {
-    const srv = createServer();
-    srv.on('error', () => {
-      rsv(false);
-    });
-    srv.on('listening', () => {
-      srv.close();
-      rsv(true);
-    });
-    srv.listen(port, '127.0.0.1');
+const checkPortAvailable = (port: number): Promise<boolean> => new Promise<boolean>((rsv) => {
+  const srv = createServer();
+  srv.on('error', () => {
+    rsv(false);
   });
-}
+  srv.on('listening', () => {
+    srv.close();
+    rsv(true);
+  });
+  srv.listen(port, '127.0.0.1');
+});
 
-export async function findAvailablePort(from: number = MIN_PORT) {
+export const findAvailablePort = async (from: number = MIN_PORT): Promise<number> => {
   for (let port = from; port < MAX_PORT; port += 1) {
     // eslint-disable-next-line no-await-in-loop
     if (!usedPort.has(port) && await checkPortAvailable(port)) return port;
   }
   return null;
-}
+};
 
-export function handleLaunchError(context: WebSocketContext, error?: Error) {
+export const handleLaunchError = (context: WebSocketContext, error?: Error): void => {
   const { server: { id: sId }, connection: { id: cId } } = context;
   console.error(`[launch] ${sId}.${cId}`, error);
-}
+};
 
 export class ResManager {
   public readonly api: WebSocketContext;
 
   public readonly port: number;
 
-  public get selectedCategory() { return this.debugger.category; }
+  public get selectedCategory(): string { return this.debugger.category; }
 
-  public async select(_id: number, { category = null }) {
+  public async select(_id: number, { category = null }): Promise<Record<string, unknown>> {
     if (category === this.selectedCategory) {
       return { message: 'same' };
     }
@@ -50,7 +48,7 @@ export class ResManager {
     return { message: 'selected', breakpoints, scripts };
   }
 
-  public async inspect(id: number, { action = '', ...params }: Record<string, any>) {
+  public async inspect(id: number, { action, ...params }: Record<string, unknown>): Promise<Record<string, unknown>> {
     if (!this.selectedCategory) throw Error('No category selected');
     if (!action) throw Error('No action');
 
@@ -58,15 +56,15 @@ export class ResManager {
     return { message: 'task started' };
   }
 
-  public closeService() {
+  public closeService(): void {
     this.service.connection.disconnect();
     usedPort.delete(this.port);
     this.debugger.close();
   }
 
-  public get service() { return this.vs; }
+  public get service(): WebSocketContext { return this.vs; }
 
-  public async setService(val: WebSocketContext, debugWsUrl: string) {
+  public async setService(val: WebSocketContext, debugWsUrl: string): Promise<Record<string, unknown>> {
     this.vs = val;
     this.debugger = new Debugger(this.vs.connection, debugWsUrl);
     this.debugger.onStackPopulated = (breakpoint, stack) => {

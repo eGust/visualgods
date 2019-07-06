@@ -24,21 +24,13 @@ export class Heap<T> extends Runner {
     return this.data;
   }
 
-  public get length() {
-    return this.items.length;
-  }
+  public get length(): number { return this.items.length; }
 
-  public get isEmpty() {
-    return !this.length;
-  }
+  public get isEmpty(): boolean { return !this.length; }
 
-  protected execute() {
-    this.heapify();
-  }
+  protected execute(): void { this.heapify(); }
 
-  protected heapify() {
-    heapifyUp(this.items, this.comparer);
-  }
+  protected heapify(): void { heapifyUp(this.items, this.comparer); }
 
   protected verify = () => {
     const { items, comparer: compare } = this;

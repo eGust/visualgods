@@ -3,15 +3,15 @@ import { RuntimeRemoteObject, RtPropertyDescriptor } from '../types';
 
 interface DebugResolver {
   objectId: string;
-  resolve: (result: Record<string, any>) => void;
+  resolve: (result: Record<string, unknown>) => void;
 }
 
 export default class RemoteObjectResolver {
-  public async resolveRemoteObject(objectId: string): Promise<Record<string, any>> {
+  public async resolveRemoteObject(objectId: string): Promise<Record<string, unknown>> {
     const items = (await this.runtimeGetProperties(objectId)).result as RtPropertyDescriptor[];
     const entries = await Promise.all(items.map(async ({ name, value }) => (
       value && value.type !== 'function' && name !== '__proto__'
-        ? [name, await this.resolveObjectValue(value)] as [string, any]
+        ? [name, await this.resolveObjectValue(value)] as [string, unknown]
         : null
     )));
 
@@ -22,7 +22,7 @@ export default class RemoteObjectResolver {
     return obj;
   }
 
-  public handleResponse({ id, result }: ResponseMessage) {
+  public handleResponse({ id, result }: ResponseMessage): void {
     const { resolvers } = this;
     if (resolvers.has(id)) {
       const { resolve } = resolvers.get(id);
@@ -38,7 +38,7 @@ export default class RemoteObjectResolver {
     this.resolveRemoteObject = this.resolveRemoteObject.bind(this);
   }
 
-  private async resolveObjectValue(v: RuntimeRemoteObject): Promise<any> {
+  private async resolveObjectValue(v: RuntimeRemoteObject): Promise<unknown> {
     if (!v.objectId) return v.value;
     const {
       objectId,
@@ -51,7 +51,7 @@ export default class RemoteObjectResolver {
       return properties.map(({ value }) => value);
     }
 
-    const obj = (await this.resolveRemoteObject(objectId)) as Record<string, any>;
+    const obj = (await this.resolveRemoteObject(objectId)) as Record<string, unknown>;
     if (subtype !== 'array') return obj;
 
     const { length, ...list } = obj;
@@ -62,8 +62,8 @@ export default class RemoteObjectResolver {
     return items;
   }
 
-  private runtimeGetProperties(objectId: string): Promise<Record<string, any>> {
-    return new Promise<Record<string, any>>((resolve) => {
+  private runtimeGetProperties(objectId: string): Promise<Record<string, unknown>> {
+    return new Promise<Record<string, unknown>>((resolve) => {
       const msgId = this.send({
         method: 'Runtime.getProperties',
         params: {

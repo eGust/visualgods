@@ -11,7 +11,7 @@ import Dispatcher from './dispatcher';
 const hostname = env.HOST || '127.0.0.1';
 const port = +(env.PORT || '3333');
 
-function startServer() {
+const startServer = (): void => {
   console.info(`NODE_ENV: ${NODE_ENV}`);
   const app = new Koa();
   const router = new Router();
@@ -31,6 +31,6 @@ function startServer() {
     console.log(`Failed to start server on ${hostname}:${port}`);
     console.error(err);
   }
-}
+};
 
 startServer();

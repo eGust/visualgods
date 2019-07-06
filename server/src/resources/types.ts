@@ -1,4 +1,4 @@
-export interface ParsedScript {
+export interface ParsedScript extends Record<string, unknown> {
   scriptId: string;
   url: string;
   startLine: number;
@@ -62,7 +62,7 @@ export interface DebugLocation {
 
 export interface DebugScope {
   type: 'global' | 'local' | 'with' | 'closure' | 'catch' | 'block' | 'script' | 'eval' | 'module';
-  object: Record<string, any>;
+  object: Record<string, unknown>;
   name?: string;
   startLocation?: DebugLocation;
   endLocation?: DebugLocation;
@@ -73,18 +73,18 @@ export interface DebugCallFrame {
   scopeChain: DebugScope[];
   functionName: string;
   location: DebugLocation;
-  this: Record<string, any>;
+  this: Record<string, unknown>;
   url: string;
 
   functionLocation?: DebugLocation;
-  returnValue?: Record<string, any>;
+  returnValue?: Record<string, unknown>;
 }
 
-export interface DebugPaused {
+export interface DebugPaused extends Record<string, unknown> {
   callFrames: DebugCallFrame[];
   reason: string;
 
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   hitBreakpoints?: string[];
   asyncStackTrace?: {
     callFrames: DebugCallFrame[];
@@ -125,7 +125,7 @@ export interface RuntimeRemoteObject {
   type: RuntimeType;
   subtype?: RuntimeSubType | 'proxy' | 'promise' | 'typedarray' | 'arraybuffer' | 'dataview';
   className?: string;
-  value?: any;
+  value?: unknown;
   description?: string;
   objectId?: string;
   unserializableValue?: string;
@@ -149,7 +149,7 @@ export interface RtPropertyDescriptor {
 export interface StackFrame {
   functionName: string;
   location: DebugLocation;
-  scope: Record<string, any>;
+  scope: Record<string, unknown>;
 }
 
 export type CallFramesFilter = (name: string, callFrames: DebugCallFrame[]) =>

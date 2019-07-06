@@ -2,10 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 // import { useSpring, animated } from 'react-spring';
 
-import {
-  ValueRecord,
-  ValueType,
-} from './common_types';
+import { ValueRecord, ValueType } from './common_types';
 
 const Box = styled.div`
   display: flex;
@@ -22,7 +19,7 @@ const Box = styled.div`
   margin: 3px;
 `;
 
-function ValueBox<T extends ValueType>(props: ValueRecord<T>) {
+const ValueBox = <T extends ValueType>(props: ValueRecord<T>) => {
   // const style = useSpring({ opacity: 1, from: { opacity: 0 } });
   const { value, status } = props;
   return (
@@ -30,6 +27,6 @@ function ValueBox<T extends ValueType>(props: ValueRecord<T>) {
       {value}
     </Box>
   );
-}
+};
 
 export default ValueBox;

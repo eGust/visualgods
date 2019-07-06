@@ -4,7 +4,7 @@ import Koa from 'koa';
 import { isDev } from './utils/env_vars';
 import { ResponseMessage, MethodMessage, AnyMessage } from './types';
 
-function noop() {}
+const noop = (): void => {};
 
 class TimestampId {
   public readonly id: string;
@@ -17,9 +17,9 @@ class TimestampId {
 export class WebSocketConnection extends TimestampId {
   public readonly connection: WebSocket;
 
-  public get isTerminated() { return this.terminated; }
+  public get isTerminated(): boolean { return this.terminated; }
 
-  public ping() {
+  public ping(): void {
     if (!this.alive) {
       this.disconnect();
       return;
@@ -29,15 +29,15 @@ export class WebSocketConnection extends TimestampId {
     this.connection.ping(noop);
   }
 
-  public send(message: AnyMessage | MethodMessage | ResponseMessage) {
+  public send(message: AnyMessage | MethodMessage | ResponseMessage): void {
     this.connection.send(JSON.stringify(message));
   }
 
-  public respond(response: ResponseMessage) {
+  public respond(response: ResponseMessage): void {
     this.connection.send(JSON.stringify(response));
   }
 
-  public disconnect() {
+  public disconnect(): void {
     if (this.terminated) return;
 
     console.log('disconnected', this.id);
@@ -56,7 +56,7 @@ export class WebSocketConnection extends TimestampId {
     console.log('connected', this.id);
   }
 
-  private pong() {
+  private pong(): void {
     this.alive = true;
   }
 
@@ -75,15 +75,17 @@ export type ConnectionHandler = (context: WebSocketContext, params?: Record<stri
 export type MessageHandler = (context: WebSocketContext, message: AnyMessage) => void;
 export type ErrorHandler = (context: WebSocketContext, error: Error) => void;
 
-const defaultConnectionHandler: ConnectionHandler = ({ connection: { id: cId }, server: { id: sId } }, params) => console.error(`[${params ? 'connected' : 'disconnected'}] ${sId}.${cId}`, params);
+const defaultOnConnection: ConnectionHandler = ({ connection: { id: cId }, server: { id: sId } }, params) =>
+  console.error(`[${params ? 'connected' : 'disconnected'}] ${sId}.${cId}`, params);
 
-const defaultMessageHandler: MessageHandler = (ctx, message) => {
+const defaultOnMessage: MessageHandler = (ctx, message) => {
   const { connection: { id: cId }, server: { id: sId } } = ctx;
   console.info(`[message] ${sId}.${cId}`, message);
   ctx.connection.respond({ id: message.id, result: (message as MethodMessage).params });
 };
 
-const defaultErrorHandler: ErrorHandler = ({ connection: { id: cId }, server: { id: sId } }, error) => console.error(`[error] ${sId}.${cId}`, error);
+const defaultErrorHandler: ErrorHandler = ({ connection: { id: cId }, server: { id: sId } }, error) =>
+  console.error(`[error] ${sId}.${cId}`, error);
 
 const PING_INTERVAL = isDev ? 300_000 : 30_000;
 
@@ -102,9 +104,9 @@ export class WebSocketServer extends TimestampId {
 
   public readonly server: WebSocket.Server;
 
-  public get isTerminated() { return this.terminated; }
+  public get isTerminated(): boolean { return this.terminated; }
 
-  public stop() {
+  public stop(): void {
     if (this.terminated) return;
 
     this.terminated = true;
@@ -116,7 +118,7 @@ export class WebSocketServer extends TimestampId {
     this.server.close();
   }
 
-  public entryPoint(ctx: Koa.ParameterizedContext) {
+  public entryPoint(ctx: Koa.ParameterizedContext): void {
     const { request, socket } = ctx;
 
     this.server.handleUpgrade(request.req, socket, Buffer.alloc(0), (connection) => {
@@ -159,15 +161,15 @@ export class WebSocketServer extends TimestampId {
       perMessageDeflate: true,
     });
 
-    this.messageHandler = handlers.messageHandler || defaultMessageHandler;
-    this.connectionHandler = handlers.connectionHandler || defaultConnectionHandler;
+    this.messageHandler = handlers.messageHandler || defaultOnMessage;
+    this.connectionHandler = handlers.connectionHandler || defaultOnConnection;
     this.errorHandler = handlers.errorHandler || defaultErrorHandler;
 
     this.timer = setInterval(this.heartbeat.bind(this), PING_INTERVAL);
     this.entryPoint = this.entryPoint.bind(this);
   }
 
-  private heartbeat() {
+  private heartbeat(): void {
     const connections = [...this.connections.values()];
     const terminated = connections.filter((conn) => {
       const r = conn.isTerminated;

@@ -6,7 +6,7 @@ import { WebSocketConnection } from '../../ws_server';
 import DebugMain from './debug_main';
 
 export default class Debugger extends DebugMain {
-  public async selectCategory(category) {
+  public async selectCategory(category): Promise<Record<string, unknown>> {
     const oldResponseHandler = this.responseHandler;
     try {
       this.selectPlugin(category);
@@ -30,12 +30,12 @@ export default class Debugger extends DebugMain {
     }
   }
 
-  public inspect(id: number, method: string, params: Record<string, any>) {
+  public inspect(id: number, method: string, params: Record<string, unknown>): void {
     this.assignDebugHandlers();
     this.startTask({ id, method, params });
   }
 
-  public close() {
+  public close(): void {
     this.connection.close();
   }
 
@@ -60,7 +60,7 @@ export default class Debugger extends DebugMain {
     });
   }
 
-  private startTask({ id, method, params }: MethodMessage) {
+  private startTask({ id, method, params }: MethodMessage): void {
     console.log('startTask', { id, method, params });
     this.invoker.send({ id, method, params: { ...params, task: id } });
   }

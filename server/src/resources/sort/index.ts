@@ -3,7 +3,7 @@ import findSubjects from './subjects';
 import findItemsOperations from './items';
 import findMergeAssignments from './merge';
 
-export const findBreakpoints = (scripts: Record<string, ScriptSource>) => {
+export const findBreakpoints = (scripts: Record<string, ScriptSource>): Record<string, LineMapping> => {
   const breakpoints: Record<string, LineMapping> = {};
   const resolveSubjects = findSubjects.bind(breakpoints);
   const resolveItems = findItemsOperations.bind(breakpoints);
@@ -21,7 +21,7 @@ export const findBreakpoints = (scripts: Record<string, ScriptSource>) => {
   return breakpoints;
 };
 
-export const filterCallFrames = (name: string, callFrames: DebugCallFrame[]) => {
+export const filterCallFrames = (name: string, callFrames: DebugCallFrame[]): DebugCallFrame[] => {
   if (name === 'comparer') {
     const sortIndex = callFrames.findIndex(({ functionName }) => functionName === 'sort');
     return callFrames.slice(0, sortIndex);

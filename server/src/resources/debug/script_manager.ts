@@ -24,11 +24,11 @@ const INIT_MESSAGES = Object.freeze(JSON.parse(`[${INIT_MESSAGES_JSON.split('\n'
 export const AVAILABLE_PLUGINS: Record<string, DebuggerPlugin> = { Sort };
 
 export class ScriptManager extends DebugBase {
-  public get category() { return this.pluginCategory; }
+  public get category(): string { return this.pluginCategory; }
 
-  protected get plugin() { return this.currentPlugin; }
+  protected get plugin(): DebuggerPlugin { return this.currentPlugin; }
 
-  protected selectPlugin(category: string) {
+  protected selectPlugin(category: string): void {
     const plugin = this.plugins[category];
     if (!plugin) throw new Error(`Cannot find plugin for ${category}`);
     this.currentPlugin = plugin;
@@ -61,7 +61,7 @@ export class ScriptManager extends DebugBase {
 
   protected pluginCategory = '';
 
-  protected init() {
+  protected init(): void {
     this.scriptResponseHandler({ id: 0 });
   }
 
@@ -71,7 +71,7 @@ export class ScriptManager extends DebugBase {
     this.responseHandler = this.scriptResponseHandler.bind(this);
   }
 
-  private scriptMessageHandler(message: MethodMessage) {
+  private scriptMessageHandler(message: MethodMessage): void {
     if (message.method !== 'Debugger.scriptParsed') return;
 
     const script = parseScript(message.params as ParsedScript);
@@ -83,7 +83,7 @@ export class ScriptManager extends DebugBase {
     }
   }
 
-  private scriptResponseHandler(response: ResponseMessage) {
+  private scriptResponseHandler(response: ResponseMessage): void {
     const { id } = response;
     const initMsg = INIT_MESSAGES[id];
     if (initMsg) {

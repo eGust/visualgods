@@ -3,7 +3,7 @@ import Sort, { Comparer } from '../Sort';
 const GAPS = [701, 301, 132, 57, 23, 10, 4, 1];
 
 /* eslint-disable no-param-reassign, arrow-parens */
-const shellSort = <T>(items: T[], compare: Comparer<T>) => {
+const shellSort = <T>(items: T[], compare: Comparer<T>): void => {
   const n = items.length;
   GAPS.forEach((gap) => {
     for (let i = gap; i < n; i += 1) {
@@ -19,7 +19,7 @@ const shellSort = <T>(items: T[], compare: Comparer<T>) => {
 /* eslint-enable no-param-reassign, arrow-parens */
 
 class ShellSort<T> extends Sort<T> {
-  public sort() {
+  public sort(): void {
     const { items, compare } = this;
     shellSort(items, compare);
   }

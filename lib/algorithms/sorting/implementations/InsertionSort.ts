@@ -1,7 +1,7 @@
 import Sort, { swap, Comparer } from '../Sort';
 
 // eslint-disable-next-line arrow-parens
-const insertionSort = <T>(items: T[], compare: Comparer<T>) => {
+const insertionSort = <T>(items: T[], compare: Comparer<T>): void => {
   const size = items.length;
   for (let i = 1; i < size; i += 1) {
     for (let j = i; j > 0 && compare(items[j - 1], items[j]) > 0; j -= 1) {
@@ -11,7 +11,7 @@ const insertionSort = <T>(items: T[], compare: Comparer<T>) => {
 };
 
 class InsertionSort<T> extends Sort<T> {
-  public sort() {
+  public sort(): void {
     const { items, compare } = this;
     insertionSort(items, compare);
   }

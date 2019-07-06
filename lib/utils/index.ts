@@ -1,13 +1,13 @@
 export abstract class Runner {
-  protected abstract data: any;
+  protected abstract data: unknown;
 
   protected verify: () => boolean = () => true;
 
-  protected dump() {
+  protected dump(): string {
     return JSON.stringify(this.data);
   }
 
-  protected load(json: string) {
+  protected load(json: string): void {
     this.data = JSON.parse(json);
   }
 }
@@ -36,7 +36,7 @@ export const swap = <T>(list: T[], i: number, j: number): T[] => {
 export type Comparer<T> = (a: T, b: T) => number;
 
 // eslint-disable-next-line arrow-parens
-export const defaultCompare = <T>(a: T, b: T) => {
+export const defaultCompare = <T>(a: T, b: T): number => {
   if (a < b) return -1;
   if (a > b) return +1;
   return 0;
@@ -49,4 +49,4 @@ export const defaultCompare = <T>(a: T, b: T) => {
  * @param {integer} [lo=0] `integer` low inclusive boundary
  * @returns {integer} `integer`
  */
-export const randomInt = (hi: number, lo: number = 0) => Math.floor(Math.random() * (hi - lo)) + lo;
+export const randomInt = (hi: number, lo: number = 0): number => Math.floor(Math.random() * (hi - lo)) + lo;

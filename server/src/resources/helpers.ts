@@ -1,4 +1,4 @@
-export const findCode = (source: string, sequences: string[]) => {
+export const findCode = (source: string, sequences: string[]): number => {
   let pos = 0;
   const notFound = sequences.find((seq) => {
     pos = source.indexOf(seq, pos);
@@ -20,7 +20,7 @@ export const generateSubjectFinder = (subject: string, sequences: string[]) => (
   return { subject, line };
 };
 
-export const matchAllRegEx = (str: string, re: RegExp) => {
+export const matchAllRegEx = (str: string, re: RegExp): number[] => {
   const matches: number[] = [];
   let m: RegExpExecArray = null;
   do {
@@ -32,7 +32,7 @@ export const matchAllRegEx = (str: string, re: RegExp) => {
   return matches;
 };
 
-export const findAllSubStr = (str: string, sub: string) => {
+export const findAllSubStr = (str: string, sub: string): number[] => {
   const matches: number[] = [];
   let pos = 0;
   for (;;) {
@@ -44,7 +44,7 @@ export const findAllSubStr = (str: string, sub: string) => {
   return matches;
 };
 
-export const getLineMap = (offsets: number[], source: string) => {
+export const getLineMap = (offsets: number[], source: string): Map<number, number> => {
   const map = new Map<number, number>();
   let line = 0;
   let offIndex = 0;

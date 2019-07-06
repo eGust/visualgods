@@ -1,7 +1,7 @@
 import Sort, { swap, Comparer } from '../Sort';
 
 // eslint-disable-next-line arrow-parens
-const bubbleSort = <T>(items: T[], compare: Comparer<T>) => {
+const bubbleSort = <T>(items: T[], compare: Comparer<T>): void => {
   const n = items.length;
   let swapped: boolean;
   do {
@@ -16,7 +16,7 @@ const bubbleSort = <T>(items: T[], compare: Comparer<T>) => {
 };
 
 class BubbleSort<T> extends Sort<T> {
-  public sort() {
+  public sort(): void {
     const { items, compare } = this;
     bubbleSort(items, compare);
   }

@@ -10,7 +10,7 @@ comparer: const comparer
     return generateSubjectFinder(subject, [code, 'return']);
   });
 
-function findSubjects({ source, url, scriptId }: ScriptSource, lineMappings: LineMappings) {
+function findSubjects({ source, url, scriptId }: ScriptSource, lineMappings: LineMappings): void {
   subjectFinders.forEach((search) => {
     const sub = search(source);
     if (!sub) return;

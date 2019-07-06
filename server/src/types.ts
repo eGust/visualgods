@@ -5,20 +5,20 @@ export interface KeyItem<T> {
 
 export type NumberItem = KeyItem<number>;
 
-export interface ResponseMessage {
+export interface ResponseMessage extends Record<string, unknown> {
   id: number;
-  result?: Record<string, any>;
+  result?: Record<string, unknown>;
 }
 
-export interface MethodMessage {
+export interface MethodMessage extends Record<string, unknown> {
   id?: number;
   method: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
-export interface AnyMessage {
+export interface AnyMessage extends Record<string, unknown> {
   id?: number;
   method?: string;
-  result?: Record<string, any>;
-  params?: Record<string, any>;
+  result?: Record<string, unknown>;
+  params?: Record<string, unknown>;
 }

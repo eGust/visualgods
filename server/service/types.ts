@@ -7,11 +7,11 @@ export type NumberItem = KeyItem<number>;
 
 export interface ResponseMessage {
   id: number;
-  result: Record<string, any>;
+  result: Record<string, unknown>;
 }
 
 export interface MethodMessage {
   id: number;
   method: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }

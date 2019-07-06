@@ -1,4 +1,4 @@
-import { LineMapping, Breakpoint } from '../types';
+import { LineMapping, Breakpoint, DebugLocation } from '../types';
 import { ScriptManager } from './script_manager';
 import { ResponseMessage } from '../../types';
 
@@ -15,19 +15,20 @@ interface ConvertResolver {
   resolve: (value: Breakpoint) => void;
 }
 
-function onClearResponse({ id }: ResponseMessage) {
+const onClearResponse = ({ id }: ResponseMessage): void => {
   const resolve: () => void = this[id];
   delete this[id];
   resolve();
-}
+};
 
-function onSetupResponse({ id, result: { breakpointId } }: ResponseMessage) {
+const onSetupResponse = ({ id, result: { breakpointId } }: ResponseMessage): void => {
   const { name, resolve }: SetupResolver = this[id];
   delete this[id];
-  resolve({ name, breakpointId });
-}
+  resolve({ name, breakpointId: breakpointId as string });
+};
 
-function onConvertResponse({ id, result: { locations: [location] } }: ResponseMessage) {
+const onConvertResponse = ({ id, result: { locations } }: ResponseMessage): void => {
+  const [location] = locations as DebugLocation[];
   const { name, url, resolve }: ConvertResolver = this[id];
   delete this[id];
   const { lineNumber, columnNumber } = location;
@@ -39,15 +40,15 @@ function onConvertResponse({ id, result: { locations: [location] } }: ResponseMe
   };
   // console.log('getPossibleBreakpoints', location.scriptId, bp);
   resolve(bp);
-}
+};
 
 export default class BreakpointManager extends ScriptManager {
-  protected get currentBreakpoints() {
+  protected get currentBreakpoints(): [string, LineMapping][] {
     return Object.entries(this.sourceBreakpoints[this.pluginCategory])
       .map(([name, bp]) => [name, { ...bp, mappings: undefined }]);
   }
 
-  protected async clearBreakpoints() {
+  protected async clearBreakpoints(): Promise<void> {
     const { activeBreakpoints } = this;
     // console.log('clearBreakpoints', activeBreakpoints);
     if (!Object.keys(activeBreakpoints).length) return;
@@ -64,7 +65,7 @@ export default class BreakpointManager extends ScriptManager {
     this.activeBreakpoints = {};
   }
 
-  protected async setupBreakpoints(subject: string) {
+  protected async setupBreakpoints(subject: string): Promise<void> {
     const bps = await this.findBreakpoints(subject);
     if (!bps) return;
 

@@ -29,21 +29,19 @@ type SortParams = Readonly<{ task: number; items: NumberItem[] }>;
 
 type Sorter = (params: SortParams) => { task: number; sorted: NumberItem[] };
 
-function buildSorter(sorter: Sort<NumberItem>): Sorter {
-  return ({ task, items }: SortParams) => {
-    // eslint-disable-next-line no-param-reassign
-    sorter.items = items.map(item => Object.freeze(item));
-    sorter.sort();
-    return { task, sorted: sorter.items };
-  };
-}
+const buildSorter = (sorter: Sort<NumberItem>): Sorter => ({ task, items }: SortParams) => {
+  // eslint-disable-next-line no-param-reassign
+  sorter.items = items.map(item => Object.freeze(item));
+  sorter.sort();
+  return { task, sorted: sorter.items };
+};
 
-function createSort() {
+const createSort = (): Record<string, Sorter> => {
   const r: Record<string, Sorter> = {};
   Object.entries(sorters).forEach(([key, sorter]) => {
     r[key] = buildSorter(sorter);
   });
   return r;
-}
+};
 
 export default createSort();

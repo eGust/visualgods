@@ -1,7 +1,7 @@
 import Sort, { Comparer } from '../Sort';
 
 // eslint-disable-next-line arrow-parens
-const merge = <T>(a: T[], b: T[], compare: Comparer<T>) => {
+const merge = <T>(a: T[], b: T[], compare: Comparer<T>): T[] => {
   const sizeA = a.length;
   const sizeB = b.length;
   const sizeResult = sizeA + sizeB;
@@ -39,7 +39,7 @@ const mergeSort = <T>(items: T[], compare: Comparer<T>, start = 0, end = items.l
 };
 
 class MergeSort<T> extends Sort<T> {
-  public sort() {
+  public sort(): void {
     const { items, compare } = this;
     this.data = mergeSort(items, compare);
   }

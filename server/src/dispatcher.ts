@@ -8,7 +8,7 @@ import { ResManager, findAvailablePort, handleLaunchError } from './resources/re
 
 const LAUNCH_OPTIONS = { cwd: SERVICE_ROOT };
 
-type ResMethod = (id: number, params: Record<string, any>) => Promise<Record<string, any>>;
+type ResMethod = (id: number, params: Record<string, unknown>) => Promise<Record<string, unknown>>;
 
 export default class Dispatcher {
   public readonly service: WebSocketServer;
@@ -27,7 +27,7 @@ export default class Dispatcher {
     });
   }
 
-  private async apiConnectionHandler(context: WebSocketContext, params?: Record<string, any>) {
+  private async apiConnectionHandler(context: WebSocketContext, params?: Record<string, unknown>): Promise<void> {
     const apiId = context.connection.id;
     if (!params) {
       const res = this.apiResources.get(apiId);
@@ -63,7 +63,7 @@ export default class Dispatcher {
     }
   }
 
-  private async apiMessageHandler(context: WebSocketContext, message: MethodMessage) {
+  private async apiMessageHandler(context: WebSocketContext, message: MethodMessage): Promise<void> {
     console.log(context.connection.id, message);
 
     const res = this.apiResources.get(context.connection.id);
@@ -85,11 +85,11 @@ export default class Dispatcher {
     }
   }
 
-  private async serviceConnectionHandler(context: WebSocketContext, params?: Record<string, any>) {
+  private async serviceConnectionHandler(context: WebSocketContext, params: Record<string, unknown>): Promise<void> {
     if (!params) return; // TODO: clean up
 
     console.log('serverConnectionHandler', params);
-    const res = this.apiResources.get(params.token);
+    const res = this.apiResources.get(params.token as string);
     this.serviceResources.set(context.connection.id, res);
 
     const response = await phin({ url: `http://127.0.0.1:${res.port}/json`, parse: 'json' });
@@ -99,7 +99,7 @@ export default class Dispatcher {
     console.log('vad service connected', result);
   }
 
-  private async serviceMessageHandler(context: WebSocketContext, message: AnyMessage) {
+  private async serviceMessageHandler(context: WebSocketContext, message: AnyMessage): Promise<void> {
     console.log('serviceMessageHandler', context.connection.id, message);
 
     const res = this.serviceResources.get(context.connection.id);

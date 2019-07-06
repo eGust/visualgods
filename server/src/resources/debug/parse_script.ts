@@ -4,6 +4,7 @@ import {
   ParsedScript, SourceMap, MappingItem, ScriptSource,
 } from '../types';
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const toLineObj = ([col, indexSource, sourceLine, sourceCol, indexName]: number[]) => ({
   col,
   sourceLine,
@@ -12,21 +13,19 @@ const toLineObj = ([col, indexSource, sourceLine, sourceCol, indexName]: number[
   indexSource,
 });
 
-function formatLine(line: string, vlqState: number[]): MappingItem[] {
-  return line.split(',').map((seg) => {
-    if (!seg) return null;
+const formatLine = (line: string, vlqState: number[]): MappingItem[] => line.split(',').map((seg) => {
+  if (!seg) return null;
 
-    const decoded = decodeVlq(seg);
-    for (let i = 0; i < 5; i += 1) {
-      if (typeof decoded[i] === 'number') {
-        vlqState[i] += decoded[i]; // eslint-disable-line no-param-reassign
-      }
+  const decoded = decodeVlq(seg);
+  for (let i = 0; i < 5; i += 1) {
+    if (typeof decoded[i] === 'number') {
+      vlqState[i] += decoded[i]; // eslint-disable-line no-param-reassign
     }
-    return toLineObj(vlqState);
-  }).filter(x => x);
-}
+  }
+  return toLineObj(vlqState);
+}).filter(x => x);
 
-function decodeMappings(mappings: string): MappingItem[][] {
+const decodeMappings = (mappings: string): MappingItem[][] => {
   const vlqState = [0, 0, 0, 0, 0];
   const result = [];
   mappings.split(';').forEach((line, i) => {
@@ -36,9 +35,9 @@ function decodeMappings(mappings: string): MappingItem[][] {
   });
 
   return result;
-}
+};
 
-function parseScript(script: ParsedScript): ScriptSource {
+const parseScript = (script: ParsedScript): ScriptSource => {
   if (script.sourceMapURL && script.url
     && script.url.startsWith('file://')
     && script.sourceMapURL.startsWith('data:application/json')) {
@@ -53,6 +52,6 @@ function parseScript(script: ParsedScript): ScriptSource {
     };
   }
   return null;
-}
+};
 
 export default parseScript;
