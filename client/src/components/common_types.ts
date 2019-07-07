@@ -20,6 +20,6 @@ export type ValueType = number | string | object;
 
 export interface ValueRecord<T extends ValueType> {
   value: T;
-  status: ItemStatus;
-  highlight: ItemHighlight;
+  status?: ItemStatus;
+  highlight?: ItemHighlight;
 }

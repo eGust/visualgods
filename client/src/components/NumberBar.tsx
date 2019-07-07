@@ -2,7 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 // import { useSpring, animated } from 'react-spring';
 
-import { ValueRecord } from './common_types';
+import { ValueRecord, ItemStatus } from './common_types';
 
 const Container = styled.div`
   display: flex;
@@ -36,7 +36,7 @@ const NumberBar = (props: ValueRecord<number>) => {
   return (
     <Container>
       {value}
-      <Bar className={`${status}-status`.toLowerCase()} size={value * 5} />
+      <Bar className={`${status || ItemStatus.Normal}-status`.toLowerCase()} size={value * 5} />
     </Container>
   );
 };

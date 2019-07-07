@@ -1,7 +1,5 @@
 import React from 'react';
 
-import WsContext from '../views/WsContext';
-import WsManager from '../api/wsManager';
 import { generateRandomNumbers, shuffleNumbers } from '../utils/sort';
 
 interface ArrayEditorProps {
@@ -11,25 +9,20 @@ interface ArrayEditorProps {
 
 interface ArrayEditorState {
   source: string;
-  algorithm: string;
   sampleSize: number;
   manualText: string;
 }
 
 class ArrayEditor extends React.PureComponent<ArrayEditorProps> {
-  public static contextType = WsContext;
-
   public constructor(props: ArrayEditorProps, context: {}) {
     super(props, context);
 
     this.state = {
       source: 'random',
-      algorithm: '',
       sampleSize: props.numbers.length,
       manualText: props.numbers.join('\n'),
     };
     this.onSelectedSource = this.onSelectedSource.bind(this);
-    this.onSelectedAlgorithm = this.onSelectedAlgorithm.bind(this);
     this.onUpdatedSampleSize = this.onUpdatedSampleSize.bind(this);
     this.onUpdatedManualText = this.onUpdatedManualText.bind(this);
     this.generateNumbers = this.generateNumbers.bind(this);
@@ -42,10 +35,6 @@ class ArrayEditor extends React.PureComponent<ArrayEditorProps> {
     const { source } = this.state;
     if (source === 'manual') return;
     this.setState({ manualText: nextProps.numbers.join('\n') });
-  }
-
-  private onSelectedAlgorithm(e: React.ChangeEvent<HTMLSelectElement>) {
-    this.setState({ algorithm: e.target.value });
   }
 
   private onSelectedSource(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -80,47 +69,26 @@ class ArrayEditor extends React.PureComponent<ArrayEditorProps> {
 
   public render() {
     const {
-      state: {
-        source, algorithm, sampleSize, manualText,
-      },
-      props: { numbers },
-      context,
-      onSelectedAlgorithm,
+      state: { source, sampleSize, manualText },
+      props: { numbers, children },
       onSelectedSource,
       onUpdatedSampleSize,
       onUpdatedManualText,
       generateNumbers,
       shuffle,
     } = this;
-    const jsonValue = JSON.stringify(numbers);
-    const algorithms = (context as WsManager).categories.Sort;
+    const jsonValue = `[${numbers.join(', ')}]`;
 
     return (
       <div className="array-editor">
-        <div className="field">
-          <label className="label">
-            Sort Algorithm:
-            <div className="control">
-              <div className="select">
-                <select value={algorithm || algorithms[0]} onChange={onSelectedAlgorithm}>
-                  {
-                    algorithms.map((a) => (
-                      <option key={a} value={a}>{a}</option>
-                    ))
-                  }
-                </select>
-              </div>
-            </div>
-          </label>
-        </div>
-
+        { children }
         <hr />
 
         <div className="field">
           <label className="label">
-            Data Source:
+            Numbers:
             <div className="control">
-              <div className="select">
+              <div className="select is-fullwidth">
                 <select value={source} onChange={onSelectedSource}>
                   <option value="random">Random</option>
                   <option value="manual">Manual</option>
@@ -132,47 +100,47 @@ class ArrayEditor extends React.PureComponent<ArrayEditorProps> {
         {
           source === 'random' ? (
             <div className="random auto-fill-column">
-              <div className="field">
-                <label className="label">
-                  Sample Size:
-                  <div className="control">
-                    <input
-                      type="number"
-                      className="input"
-                      min="3"
-                      max="49"
-                      value={sampleSize}
-                      onChange={onUpdatedSampleSize}
-                    />
-                  </div>
-                </label>
-              </div>
-              <div className="field">
-                <button className="button is-primary" type="button" onClick={generateNumbers}>Generate!</button>
+              <label className="label">
+                Sample Size:
+              </label>
+              <div className="field has-addons">
+                <div className="control is-expanded">
+                  <input
+                    type="number"
+                    className="input"
+                    min="3"
+                    max="44"
+                    value={sampleSize}
+                    onChange={onUpdatedSampleSize}
+                  />
+                </div>
+                <div className="control">
+                  <button className="button is-link" type="button" onClick={generateNumbers}>Generate</button>
+                </div>
               </div>
               <div className="auto-fill" />
             </div>
           ) : (
             <div className="manual auto-fill-column">
+              <div className="field">
+                <button className="button is-link" type="button" onClick={shuffle}>Shuffle</button>
+              </div>
               <div className="field auto-fill-column">
-                <label className="label auto-fill-column">
-                  Numbers:
-                  <div className="control auto-fill-column">
-                    <textarea
-                      className="textarea auto-fill"
-                      autoComplete="off"
-                      rows={1}
-                      value={manualText}
-                      onChange={onUpdatedManualText}
-                    />
-                  </div>
-                </label>
+                <div className="control auto-fill-column">
+                  <textarea
+                    className="textarea auto-fill"
+                    autoComplete="off"
+                    rows={1}
+                    value={manualText}
+                    onChange={onUpdatedManualText}
+                  />
+                </div>
               </div>
             </div>
           )
         }
-        <hr />
 
+        <hr />
         <div className="preview">
           <div className="field">
             <label className="label">
@@ -181,9 +149,6 @@ class ArrayEditor extends React.PureComponent<ArrayEditorProps> {
                 <pre className="pre">{jsonValue}</pre>
               </div>
             </label>
-          </div>
-          <div className="field">
-            <button className="button is-link" type="button" onClick={shuffle}>Shuffle</button>
           </div>
         </div>
       </div>

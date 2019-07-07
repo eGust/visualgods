@@ -4,9 +4,11 @@ const GAPS = [701, 301, 132, 57, 23, 10, 4, 1];
 
 /* eslint-disable no-param-reassign, arrow-parens */
 const shellSort = <T>(items: T[], compare: Comparer<T>): void => {
-  const n = items.length;
-  GAPS.forEach((gap) => {
-    for (let i = gap; i < n; i += 1) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const gap of GAPS) {
+    if (gap >= items.length) continue; // eslint-disable-line no-continue
+
+    for (let i = gap; i < items.length; i += 1) {
       const temp = items[i];
       let j: number;
       for (j = i; j >= gap && compare(items[j - gap], temp) > 0; j -= gap) {
@@ -14,7 +16,7 @@ const shellSort = <T>(items: T[], compare: Comparer<T>): void => {
       }
       items[j] = temp;
     }
-  });
+  }
 };
 /* eslint-enable no-param-reassign, arrow-parens */
 
