@@ -4,6 +4,7 @@ import WsManager from '../api/wsManager';
 import { NumberItem, Breakpoint } from '../types';
 import { generateRandomNumbers } from '../utils/sort';
 
+import Insertion from './sort/Insertion';
 import ArrayEditor from '../components/ArrayEditor';
 import NumberBar from '../components/NumberBar';
 import WsContext from './WsContext';
@@ -26,7 +27,7 @@ class Sort extends React.PureComponent {
   public state: SortState = {
     status: 'load',
     algorithm: '',
-    items: generateRandomNumbers(24).map((value, index) => ({ key: (index + 1).toString(), value })),
+    items: generateRandomNumbers(16).map((value, index) => ({ key: (index + 1).toString(), value })),
   }
 
   protected breakpoints: Record<string, Breakpoint> = {};
@@ -45,15 +46,16 @@ class Sort extends React.PureComponent {
   }
 
   private startSorting() {
-    const { state: { algorithm, items } } = this;
-    const wsManager = this.context as WsManager;
-    const action = algorithm || wsManager.categories.Sort[0];
-    wsManager.send({ method: 'inspect', params: { action, items } });
-
+    // const { state: { algorithm, items } } = this;
+    // const wsManager = this.context as WsManager;
+    // const action = algorithm || wsManager.categories.Sort[0];
+    // wsManager.send({ method: 'inspect', params: { action, items } });
     this.setState({ status: 'run' });
   }
 
   private finishSorting() {
+    const wsManager = this.context as WsManager;
+    wsManager.onMessage = console.log;
     this.setState({ status: 'prepare' });
   }
 
@@ -70,7 +72,6 @@ class Sort extends React.PureComponent {
       }
       console.log(message);
     };
-    console.log(wsManager);
   }
 
   private updateItems(numbers: number[]) {
@@ -110,13 +111,12 @@ class Sort extends React.PureComponent {
                 </div>
                 <div className="control">
                   <button
-                    className="button
-                    is-primary"
+                    className="button is-primary"
                     type="button"
                     disabled={disabled}
                     onClick={startSorting}
                   >
-                      Go
+                    Go
                   </button>
                 </div>
               </div>
@@ -136,12 +136,50 @@ class Sort extends React.PureComponent {
           </div>
         );
       }
-      case 'run':
+      case 'run': {
+        const { state: { algorithm, items } } = this;
+        const numbers = items.map(({ value }) => value);
+        const jsonValue = `[${numbers.join(', ')}]`;
+        const action = algorithm || (this.context as WsManager).categories.Sort[0];
+
         return (
-          <div>
-            <button className="button is-primary" type="button" onClick={this.finishSorting}>Done</button>
+          <div className="sort">
+            <div className="array-editor">
+              <label className="label">
+              Sorting
+              </label>
+              <div className="field has-addons">
+                <div className="control is-expanded">
+                  <input
+                    type="text"
+                    className="input"
+                    value={algorithm}
+                    disabled
+                  />
+                </div>
+                <div className="control">
+                  <button className="button is-primary" type="button" onClick={this.finishSorting}>Return</button>
+                </div>
+              </div>
+              <div className="auto-fill" />
+
+              <hr />
+              <div className="preview">
+                <div className="field">
+                  <label className="label">
+                    JSON:
+                    <div className="control">
+                      <pre className="pre">{jsonValue}</pre>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <Insertion action={action} items={items} />
           </div>
         );
+      }
       case 'load':
         return (<div>Loading...</div>);
       default:
