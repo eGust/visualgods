@@ -18,5 +18,8 @@
     "eslint-plugin-react": "^7.14.2",
     "eslint-plugin-react-hooks": "^1.6.1",
     "typescript": "^3.5.2"
+  },
+  "resolutions": {
+    "lodash": "~4.17.14"
   }
 }
