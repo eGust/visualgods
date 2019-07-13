@@ -17,19 +17,19 @@ export type Runnable = Runner | { new(): Runner };
 /**
  * Swap two element in an array
  *
- * @param {T[]} list `array` array to swap
+ * @param {T[]} array `array` array to swap
  * @param {number} i `integer` index 1
  * @param {number} j `integer` index 2
  * @returns {T[]} `array` the same array
  */
 /* eslint-disable no-param-reassign, arrow-parens */
-export const swap = <T>(list: T[], i: number, j: number): T[] => {
-  if (i === j) return list;
+export const swap = <T>(elements: T[], i: number, j: number): T[] => {
+  if (i === j) return elements;
 
-  const t = list[i];
-  list[i] = list[j];
-  list[j] = t;
-  return list;
+  const t = elements[i];
+  elements[i] = elements[j];
+  elements[j] = t;
+  return elements;
 };
 /* eslint-enable no-param-reassign, arrow-parens */
 

@@ -13,7 +13,7 @@ const Container = styled.div`
   font-size: 20px;
 
   width: 40px;
-  height: 540px;
+  height: 520px;
 `;
 
 interface BarProps {

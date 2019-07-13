@@ -4,6 +4,7 @@ import WsManager from '../api/wsManager';
 import { NumberItem, Breakpoint } from '../types';
 import { generateRandomNumbers } from '../utils/sort';
 
+import ScopeVar from './ScopeVar';
 import Insertion from './sort/Insertion';
 import ArrayEditor from '../components/ArrayEditor';
 import NumberBar from '../components/NumberBar';
@@ -18,6 +19,7 @@ interface BreakpointsResult extends Record<string, unknown> {
 interface SortState {
   status: 'load' | 'prepare' | 'run';
   algorithm: string;
+  scope: Record<string, unknown>;
   items: NumberItem[];
 }
 
@@ -27,6 +29,7 @@ class Sort extends React.PureComponent {
   public state: SortState = {
     status: 'load',
     algorithm: '',
+    scope: {},
     items: generateRandomNumbers(16).map((value, index) => ({ key: (index + 1).toString(), value })),
   }
 
@@ -38,6 +41,7 @@ class Sort extends React.PureComponent {
     this.startSorting = this.startSorting.bind(this);
     this.finishSorting = this.finishSorting.bind(this);
     this.updateItems = this.updateItems.bind(this);
+    this.updateScope = this.updateScope.bind(this);
     this.fetchBreakpoints();
   }
 
@@ -76,6 +80,10 @@ class Sort extends React.PureComponent {
 
   private updateItems(numbers: number[]) {
     this.setState({ items: numbers.map((value, index) => ({ value, key: index.toString() })) });
+  }
+
+  private updateScope(items: Record<string, unknown>[]) {
+    this.setState({ scope: items.reduce((scope, item) => Object.assign(scope, item), {}) });
   }
 
   public render() {
@@ -137,10 +145,11 @@ class Sort extends React.PureComponent {
         );
       }
       case 'run': {
-        const { state: { algorithm, items } } = this;
+        const { state: { algorithm, items, scope }, finishSorting, updateScope } = this;
         const numbers = items.map(({ value }) => value);
         const jsonValue = `[${numbers.join(', ')}]`;
-        const action = algorithm || (this.context as WsManager).categories.Sort[0];
+        const wsManager = this.context as WsManager;
+        const action = algorithm || wsManager.categories.Sort[0];
 
         return (
           <div className="sort">
@@ -150,18 +159,21 @@ class Sort extends React.PureComponent {
               </label>
               <div className="field has-addons">
                 <div className="control is-expanded">
-                  <input
-                    type="text"
-                    className="input"
-                    value={algorithm}
-                    disabled
-                  />
+                  <input type="text" className="input" value={action} disabled />
                 </div>
                 <div className="control">
-                  <button className="button is-primary" type="button" onClick={this.finishSorting}>Return</button>
+                  <button
+                    className="button is-primary"
+                    type="button"
+                    onClick={finishSorting}
+                  >
+                    Return
+                  </button>
                 </div>
               </div>
-              <div className="auto-fill" />
+              <hr />
+
+              <ScopeVar scope={scope} />
 
               <hr />
               <div className="preview">
@@ -176,7 +188,12 @@ class Sort extends React.PureComponent {
               </div>
             </div>
 
-            <Insertion action={action} items={items} />
+            <Insertion
+              action={action}
+              items={items}
+              sourceScripts={wsManager.sourceScripts}
+              updateScope={updateScope}
+            />
           </div>
         );
       }

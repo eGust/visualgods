@@ -12,12 +12,20 @@
       word-wrap: break-word
       white-space: pre-wrap
 
-  .preview-numbers, .chart
+  .preview-numbers
     flex: 1
     display: flex
     flex-direction: row
     justify-content: center
     align-content: center
+
+  .chart
+    height: 560px
+    display: flex
+    flex-direction: row
+    justify-content: center
+    align-content: center
+    align-items: center
 
   .stat
     display: flex
@@ -31,3 +39,20 @@
     flex-direction: column
     justify-content: center
     align-content: center
+
+  .scope-var
+    white-space: pre-wrap
+    .name
+      font-weight: bold
+    .value::before
+      content: ': '
+      color: gray
+
+  .source-code
+    flex: 1
+    padding-left: 10px
+    overflow-y: auto
+    .no
+      user-select: none
+    .no + .code::before
+        content: '  '

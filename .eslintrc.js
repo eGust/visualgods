@@ -17,6 +17,7 @@ module.exports = {
       allowHigherOrderFunctions: true,
     }],
     '@typescript-eslint/no-explicit-any': ['error', { ignoreRestArgs: true }],
+    '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true, varsIgnorePattern: '^_' }],
     'spaced-comment': ['error', 'always', {
       markers: ['/'],
     }],
