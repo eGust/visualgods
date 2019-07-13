@@ -7,13 +7,7 @@
     "esModuleInterop": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "outDir": "dist",
-    "sourceMap": false
-  },
-  "exclude": [
-    "dist",
-    "node_modules",
-    "service"
-  ],
-  "include": ["src"]
+    "outDir": "../dist",
+    "inlineSourceMap": true
+  }
 }

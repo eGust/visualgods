@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { URL } from 'url';
 import { decode as decodeVlq } from 'vlq';
 
 import {
@@ -38,14 +40,25 @@ const decodeMappings = (mappings: string): MappingItem[][] => {
 };
 
 const parseScript = (script: ParsedScript): ScriptSource => {
-  if (script.sourceMapURL && script.url
-    && script.url.startsWith('file://')
-    && script.sourceMapURL.startsWith('data:application/json')) {
-    const [, b64Json] = script.sourceMapURL.split('base64,');
-    const src = JSON.parse(Buffer.from(b64Json, 'base64').toString()) as SourceMap;
+  if (script.sourceMapURL && script.url && script.url.startsWith('file://')) {
+    let mappingJson = '';
+    const { sourceMapURL, scriptId, url } = script;
+
+    if (sourceMapURL.startsWith('data:application/json')) {
+      const [, b64Json] = sourceMapURL.split('base64,');
+      mappingJson = Buffer.from(b64Json, 'base64').toString();
+    } else if (sourceMapURL && /\bdist\b/.test(url) && !/\bnode_modules\b/.test(url)) {
+      mappingJson = readFileSync(new URL(sourceMapURL, url), { encoding: 'utf8' });
+    }
+    if (!mappingJson) return null;
+
+    const src = JSON.parse(mappingJson) as SourceMap;
+    src.sourcesContent = src.sourcesContent || [
+      readFileSync(new URL(src.sources[0], url), { encoding: 'utf8' }),
+    ];
     return {
-      scriptId: script.scriptId,
-      url: script.url,
+      scriptId,
+      url,
       file: src.file,
       source: src.sourcesContent[0],
       lineMappings: decodeMappings(src.mappings),

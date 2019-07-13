@@ -6,3 +6,4 @@ export const isDev = NODE_ENV === 'development';
 export const isProd = NODE_ENV === 'production';
 export const PROJECT_ROOT = resolve(__dirname, '../../..');
 export const SERVICE_ROOT = resolve(__dirname, '../..');
+export const DIST_ROOT = resolve(__dirname, '../../dist/server');

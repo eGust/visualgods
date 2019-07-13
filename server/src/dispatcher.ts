@@ -1,12 +1,21 @@
 import { spawn } from 'child_process';
+import { existsSync } from 'fs';
 import { promisified as phin } from 'phin';
 
 import createWsServer, { WebSocketServer, WebSocketContext } from './ws_server';
 import { MethodMessage, AnyMessage } from './types';
-import { SERVICE_ROOT } from './utils/env_vars';
+import { isProd, SERVICE_ROOT, DIST_ROOT } from './utils/env_vars';
 import { ResManager, findAvailablePort, handleLaunchError } from './resources/res_manager';
 
-const LAUNCH_OPTIONS = { cwd: SERVICE_ROOT };
+const SERVICE_JS_PATH = `${DIST_ROOT}/service/main.js`;
+
+const SERVICE_JS_EXISTS = existsSync(SERVICE_JS_PATH);
+
+const USE_DIST_SERVICE = SERVICE_JS_EXISTS && isProd;
+
+const LAUNCH_OPTIONS = {
+  cwd: USE_DIST_SERVICE ? DIST_ROOT : SERVICE_ROOT,
+};
 
 type ResMethod = (id: number, params: Record<string, unknown>) => Promise<Record<string, unknown>>;
 
@@ -48,8 +57,8 @@ export default class Dispatcher {
         return;
       }
 
-      const tsArgs = `--inspect=127.0.0.1:${port} -r ts-node/register service/main.ts`;
-      const args = `${tsArgs} ${this.listenPort} ${apiId}`.split(' ');
+      const srv = USE_DIST_SERVICE ? SERVICE_JS_PATH : '-r ts-node/register service/main.ts';
+      const args = `--inspect=127.0.0.1:${port} ${srv} ${this.listenPort} ${apiId}`.split(' ');
       const vs = spawn('node', args, LAUNCH_OPTIONS);
       this.apiResources.set(apiId, new ResManager(context, port));
 
