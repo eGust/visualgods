@@ -1,6 +1,5 @@
 import Sort, { Comparer } from '../Sort';
 
-// eslint-disable-next-line arrow-parens
 const merge = <T>(a: T[], b: T[], compare: Comparer<T>): T[] => {
   const sizeA = a.length;
   const sizeB = b.length;
@@ -24,12 +23,10 @@ const merge = <T>(a: T[], b: T[], compare: Comparer<T>): T[] => {
   return result;
 };
 
-// eslint-disable-next-line arrow-parens
 const mergeSort = <T>(items: T[], compare: Comparer<T>, start = 0, end = items.length): T[] => {
   const size = end - start;
   if (size <= 1) return items.slice(start, end);
 
-  // eslint-disable-next-line no-bitwise
   const mid = start + (size / 2 | 0);
   return merge(
     mergeSort(items, compare, start, mid),

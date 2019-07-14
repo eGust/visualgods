@@ -1,6 +1,5 @@
 import Sort, { swap, Comparer } from '../Sort';
 
-// eslint-disable-next-line arrow-parens
 const bubbleSort = <T>(items: T[], compare: Comparer<T>): void => {
   const n = items.length;
   let swapped: boolean;

@@ -1,6 +1,5 @@
 import Sort, { swap, Comparer } from '../Sort';
 
-// eslint-disable-next-line arrow-parens
 const insertionSort = <T>(items: T[], compare: Comparer<T>): void => {
   const size = items.length;
   for (let i = 1; i < size; i += 1) {

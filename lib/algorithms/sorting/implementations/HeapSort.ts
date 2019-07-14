@@ -1,7 +1,6 @@
 import Sort, { swap, Comparer } from '../Sort';
 import { heapifyUp as heapify, siftDown } from '../../../data-structures/heap/utils';
 
-// eslint-disable-next-line arrow-parens
 const heapSort = <T>(items: T[], comparer: Comparer<T>): void => {
   heapify(items, comparer);
   for (let i = items.length - 1; i > 0; i -= 1) {

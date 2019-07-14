@@ -1,6 +1,5 @@
 import Sort, { swap, Comparer } from '../Sort';
 
-// eslint-disable-next-line arrow-parens
 const partition = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>): number => {
   const mid = Math.floor((hi - lo) / 2) + lo;
   const pivot = items[mid];
@@ -19,7 +18,6 @@ const partition = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>):
   }
 };
 
-// eslint-disable-next-line arrow-parens
 const quickSort = <T>(items: T[], lo: number, hi: number, compare: Comparer<T>): void => {
   if (lo < hi) {
     const p = partition(items, lo, hi, compare);

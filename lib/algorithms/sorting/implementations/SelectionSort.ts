@@ -1,18 +1,17 @@
 import Sort, { swap, Comparer } from '../Sort';
 
-// eslint-disable-next-line arrow-parens
 const selectionSort = <T>(items: T[], compare: Comparer<T>): void => {
   const size = items.length;
-  for (let j = 0; j < size - 1; j += 1) {
-    let iMin = j;
-    for (let i = j; i < size; i += 1) {
-      if (compare(items[i], items[iMin]) < 0) {
-        iMin = i;
+  for (let i = 0; i < size - 1; i += 1) {
+    let min = i;
+    for (let j = i + 1; j < size; j += 1) {
+      if (compare(items[j], items[min]) < 0) {
+        min = j;
       }
     }
 
-    if (iMin !== j) {
-      swap(items, j, iMin);
+    if (min !== i) {
+      swap(items, i, min);
     }
   }
 };

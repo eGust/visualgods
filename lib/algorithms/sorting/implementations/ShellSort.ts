@@ -1,12 +1,11 @@
+/* eslint-disable no-param-reassign, no-restricted-syntax, no-continue */
 import Sort, { Comparer } from '../Sort';
 
 const GAPS = [701, 301, 132, 57, 23, 10, 4, 1];
 
-/* eslint-disable no-param-reassign, arrow-parens */
 const shellSort = <T>(items: T[], compare: Comparer<T>): void => {
-  // eslint-disable-next-line no-restricted-syntax
   for (const gap of GAPS) {
-    if (gap >= items.length) continue; // eslint-disable-line no-continue
+    if (gap >= items.length) continue;
 
     for (let i = gap; i < items.length; i += 1) {
       const temp = items[i];
@@ -18,7 +17,6 @@ const shellSort = <T>(items: T[], compare: Comparer<T>): void => {
     }
   }
 };
-/* eslint-enable no-param-reassign, arrow-parens */
 
 class ShellSort<T> extends Sort<T> {
   public sort(): void {
