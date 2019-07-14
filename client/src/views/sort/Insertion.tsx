@@ -6,6 +6,7 @@ import { NumberItem, SourceScript } from '../../types';
 import NumberBar from '../../components/NumberBar';
 import SourceCode from '../SourceCode';
 import WsContext from '../WsContext';
+import { ItemStatus } from '../../components/common_types';
 
 interface StackItem {
   functionName: string;
@@ -19,9 +20,9 @@ interface Step extends Record<string, unknown> {
 }
 
 enum ActionType {
-  Comparer,
-  Swap,
-  Done,
+  Compare = 'Compare',
+  Swap = 'Swap',
+  Done = 'Done',
 }
 
 interface Action {
@@ -40,25 +41,24 @@ interface SortingProps {
   action: string;
   items: NumberItem[];
   sourceScripts: Record<string, SourceScript>;
-  updateScope: (scopes: Record<string, unknown>[]) => void;
+  updateScope: (title: string, scopes: Record<string, unknown>[]) => void;
 }
 
-const decodeNumberItem = (scope: Record<string, unknown>) => {
-  if ('a' in scope && 'b' in scope) {
-    const a = scope.a as NumberItem;
-    const b = scope.b as NumberItem;
-    return { ...scope, a: a.value, b: b.value };
+const numberItemsToNumbers = (items: NumberItem[]) => items.map(({ value }) => value);
+
+const decodeNumberItem = ({ elements, ...scope }: Record<string, unknown>) => {
+  let s = scope;
+  if ('a' in s && 'b' in s) {
+    const a = s.a as NumberItem;
+    const b = s.b as NumberItem;
+    s = { ...s, a: a.value, b: b.value };
   }
 
-  if ('elements' in scope) {
-    const elements = scope.elements as NumberItem[];
-    return {
-      ...scope,
-      elements: elements.map(({ value }) => value),
-    };
+  if ('pivot' in s) {
+    s = { ...s, pivot: (s.pivot as NumberItem).value };
   }
 
-  return scope;
+  return s;
 };
 
 const extractSortingCode = (src?: SourceScript) => {
@@ -106,7 +106,7 @@ class Insertion extends React.PureComponent<SortingProps> {
 
           const newState = {
             actions: [...actions, {
-              type: breakpoint === 'comparer' ? ActionType.Comparer : ActionType.Swap,
+              type: breakpoint === 'comparer' ? ActionType.Compare : ActionType.Swap,
               stack: [stack[0], { functionName, location, scope }],
             }],
           };
@@ -115,9 +115,8 @@ class Insertion extends React.PureComponent<SortingProps> {
             ...newState,
             scriptId: location.scriptId,
           });
-          if (!scriptId) {
-            this.updateScope();
-          }
+
+          if (!scriptId) { this.updateScope(); }
           break;
         }
         case 'task.finished': {
@@ -130,6 +129,7 @@ class Insertion extends React.PureComponent<SortingProps> {
               stack: [{ functionName: '', location: {}, scope: { elements } }],
             }],
           });
+          this.updateScope();
           break;
         }
         default: {
@@ -145,14 +145,16 @@ class Insertion extends React.PureComponent<SortingProps> {
 
   private updateScope() {
     setTimeout(() => {
-      const { state: { actions, index }, props: { updateScope } } = this;
+      const { state: { actions, index }, props: { updateScope, items } } = this;
       const maxStep = actions.length - 1;
 
       const currentAction = index >= 0 && index <= maxStep ? actions[index] : null;
-      updateScope(
-        (currentAction ? currentAction.stack : [])
-          .map(({ scope }) => decodeNumberItem(scope)),
-      );
+      const nextAction = actions.slice(index).find(({ type }) => type !== ActionType.Compare);
+      const curItems = nextAction ? nextAction.stack[0].scope.elements as NumberItem[] : items;
+      const frames = (currentAction ? currentAction.stack : [])
+        .map(({ scope }) => decodeNumberItem(scope));
+
+      updateScope(currentAction ? currentAction.type : '', [{ items: numberItemsToNumbers(curItems) }, ...frames]);
     }, 1);
   }
 
@@ -189,8 +191,50 @@ class Insertion extends React.PureComponent<SortingProps> {
     const sourceScript = scriptId ? sourceScripts[scriptId] : null;
 
     const currentAction = index >= 0 && index <= maxStep ? actions[index] : null;
-    const nextAction = currentAction && actions.slice(index).find(({ type }) => type !== ActionType.Comparer);
+    const nextAction = actions.slice(index).find(({ type }) => type !== ActionType.Compare);
     const currentItems = nextAction && nextAction.stack[0].scope.elements as NumberItem[];
+    let numberBars: JSX.Element[] | null = null;
+
+    if (currentAction && currentItems) {
+      switch (currentAction.type) {
+        case ActionType.Compare: {
+          const [
+            { r },
+            { i, j },
+          ] = currentAction.stack.map(({ scope }) => scope) as [
+            { r: number },
+            { i: number; j: number },
+          ];
+          const ss = {
+            [i]: ItemStatus.Updating,
+            [j]: ItemStatus.Deleting,
+            [j - 1]: r > 0 ? ItemStatus.Selected : ItemStatus.Creating,
+          };
+
+          numberBars = currentItems.map(({ value, key }, idx) => (
+            <NumberBar key={key} value={value} status={ss[idx] || ItemStatus.Normal} />
+          ));
+          break;
+        }
+        case ActionType.Swap: {
+          const { i, j } = currentAction.stack[1].scope as { i: number; j: number };
+          const ss = {
+            [i]: ItemStatus.Updating,
+            [j]: ItemStatus.Selected,
+            [j - 1]: ItemStatus.Selected,
+          };
+
+          numberBars = currentItems.map(({ value, key }, idx) => (
+            <NumberBar key={key} value={value} status={ss[idx] || ItemStatus.Normal} />
+          ));
+          break;
+        }
+        default:
+          numberBars = currentItems.map(({ value, key }) => (
+            <NumberBar key={key} value={value} />
+          ));
+      }
+    }
 
     return (
       <div className="sorting">
@@ -202,12 +246,9 @@ class Insertion extends React.PureComponent<SortingProps> {
           <div className="index">{index}</div>
           <button className="button" type="button" disabled={index >= maxStep} onClick={goNext}>▶</button>
         </div>
+
         <div className="chart">
-          {
-            currentItems ? currentItems.map(({ value, key }) => (
-              <NumberBar key={key} value={value} />
-            )) : null
-          }
+          {numberBars}
         </div>
 
         <input

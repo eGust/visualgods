@@ -19,6 +19,7 @@ interface BreakpointsResult extends Record<string, unknown> {
 interface SortState {
   status: 'load' | 'prepare' | 'run';
   algorithm: string;
+  scopeTitle: string;
   scope: Record<string, unknown>;
   items: NumberItem[];
 }
@@ -29,8 +30,9 @@ class Sort extends React.PureComponent {
   public state: SortState = {
     status: 'load',
     algorithm: '',
+    scopeTitle: '',
     scope: {},
-    items: generateRandomNumbers(16).map((value, index) => ({ key: (index + 1).toString(), value })),
+    items: generateRandomNumbers(16).map((value, index) => ({ key: `${index + 1}`, value })),
   }
 
   protected breakpoints: Record<string, Breakpoint> = {};
@@ -82,8 +84,11 @@ class Sort extends React.PureComponent {
     this.setState({ items: numbers.map((value, index) => ({ value, key: index.toString() })) });
   }
 
-  private updateScope(items: Record<string, unknown>[]) {
-    this.setState({ scope: items.reduce((scope, item) => Object.assign(scope, item), {}) });
+  private updateScope(scopeTitle: string, items: Record<string, unknown>[]) {
+    this.setState({
+      scopeTitle,
+      scope: items.reduce((scope, item) => Object.assign(scope, item), {}),
+    });
   }
 
   public render() {
@@ -145,7 +150,13 @@ class Sort extends React.PureComponent {
         );
       }
       case 'run': {
-        const { state: { algorithm, items, scope }, finishSorting, updateScope } = this;
+        const {
+          state: {
+            algorithm, items, scopeTitle, scope,
+          },
+          finishSorting,
+          updateScope,
+        } = this;
         const numbers = items.map(({ value }) => value);
         const jsonValue = `[${numbers.join(', ')}]`;
         const wsManager = this.context as WsManager;
@@ -173,7 +184,7 @@ class Sort extends React.PureComponent {
               </div>
               <hr />
 
-              <ScopeVar scope={scope} />
+              <ScopeVar title={scopeTitle} scope={scope} />
 
               <hr />
               <div className="preview">
