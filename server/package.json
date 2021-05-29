@@ -17,7 +17,7 @@
     "koa-static": "^5.0.0",
     "phin": "^3.4.0",
     "vlq": "^1.0.0",
-    "ws": "^7.0.0"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "@types/koa": "^2.0.48",
